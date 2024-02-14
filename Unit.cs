@@ -11,10 +11,20 @@ namespace dotnetLearning
     /// </summary>
     internal class Unit
     {
-        public int Id {  get; private set; }
+        public int Id { get; private set; } = 1;
         public string Name { get; private set; }
         public string Description { get; private set; }
 
-        private Factory _factory;
+        public int FactoryId { get; private set; }
+
+        public Unit(int id, string name, string description, int factoryId)
+        {
+            Name = name;
+            Description = description;
+            FactoryId = factoryId;
+            Id=id;
+        }
+
+
     }
 }

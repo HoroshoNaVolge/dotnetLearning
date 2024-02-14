@@ -11,22 +11,25 @@ namespace dotnetLearning
     /// </summary>
     internal class Tank
     {
-        public int Id {  get; private set; }
+        public int Id { get; private set; } = 1;
         public int Volume { get; set; }
         public int MaxVolume { get; private set; }
 
-        public string Name {  get; private set; }
+        public string Name { get; private set; }
         public string Description { get; private set; }
 
-        private Unit _unit;
+        public int UnitId {  get; private set; }
+        
 
 
-        public Tank(int volume, int maxVolume, string name, string description) 
+        public Tank(int id, int volume, int maxVolume, string name, string description, int unitId)
         {
-            Volume= volume;
-            MaxVolume= maxVolume;
-            Name= name;
-            Description= description;
+            Volume = volume;
+            MaxVolume = maxVolume;
+            Name = name;
+            Description = description;
+            UnitId = unitId;
+            Id=id;
         }
     }
 }
