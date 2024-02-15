@@ -6,8 +6,8 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        // Lesson1.Run();
-         Lesson2.Run();
+         Lesson1.Run();
+        // Lesson2.Run();
         // JsonLearn.Run();
         // LinqLearn.Run();
     }

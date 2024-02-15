@@ -17,6 +17,13 @@ namespace dotnetLearning.Lesson1
 
         public int FactoryId { get; private set; }
 
+        /// <summary>
+        /// Установка
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="factoryId"></param>
         public Unit(int id, string name, string description, int factoryId)
         {
             Name = name;
