@@ -4,32 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dotnetLearning
+namespace dotnetLearning.Lesson1
 {
     /// <summary>
-    /// Резервуар
+    /// Установка
     /// </summary>
-    internal class Tank
+    internal class Unit
     {
         public int Id { get; private set; } = 1;
-        public int Volume { get; set; }
-        public int MaxVolume { get; private set; }
-
         public string Name { get; private set; }
         public string Description { get; private set; }
 
-        public int UnitId {  get; private set; }
-        
+        public int FactoryId { get; private set; }
 
-
-        public Tank(int id, int volume, int maxVolume, string name, string description, int unitId)
+        public Unit(int id, string name, string description, int factoryId)
         {
-            Volume = volume;
-            MaxVolume = maxVolume;
             Name = name;
             Description = description;
-            UnitId = unitId;
+            FactoryId = factoryId;
             Id=id;
         }
+
+
     }
 }
