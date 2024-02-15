@@ -1,13 +1,20 @@
-﻿namespace dotnetLearning.Lesson1
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Channels;
+using System.Xml;
+
+namespace dotnetLearning.Lesson1
 {
     internal static class Lesson1
     {
         internal static void Run()
         {
-            var tanks = GetTanks();
-            var units = GetUnits();
-            var factories = GetFactories();
-            Console.WriteLine($"Количество резервуаров: {tanks.Length}, установок: {units.Length}");
+            var tanks = GetTanks(@"C:\Users\user\source\repos\dotnetLearning\Lesson 1\Json\Tanks.json");
+            var units = GetUnits(@"C:\Users\user\source\repos\dotnetLearning\Lesson 1\Json\Units.json");
+            var factories = GetFactories(@"C:\Users\user\source\repos\dotnetLearning\Lesson 1\Json\Factories.json");
+
+            Console.WriteLine($"Количество резервуаров: {tanks.Count()}, установок: {units.Count()}");
 
             var foundUnit = FindUnit(units, tanks, "Резервуар 2");
             var factory = FindFactory(factories, foundUnit);
@@ -16,46 +23,53 @@
 
             var totalVolume = GetTotalVolume(tanks);
             Console.WriteLine($"Общий объем резервуаров: {totalVolume}");
+
+            foreach (var tank in tanks)
+            {
+                Console.WriteLine($"{tank.Name}, {tank.Description}, Номер установки: {tank.UnitId}");
+            }
+
+            foreach (var unit in units)
+            {
+                Console.WriteLine($"{unit.Name}, {unit.Description}, Номер фабрики: {unit.FactoryId}");
+            }
+
+            foreach (var fact in factories)
+            {
+                Console.WriteLine($"{fact.Name}, {fact.Description}");
+            }
         }
+
 
         // реализуйте этот метод, чтобы он возвращал массив резервуаров, согласно приложенным таблицам
         // можно использовать создание объектов прямо в C# коде через new, или читать из файла (на своё усмотрение)
-        public static Tank[] GetTanks()
+        public static IEnumerable<Tank> GetTanks(string jsonPath)
         {
-            // ваш код здесь
-            Tank tank1 = new(1, 1500, 2000, "Резервуар 1", "Надземный-вертикальный", 1);
-            Tank tank2 = new(2, 2500, 3000, "Резервуар 2", "Надземный-горизонтальный", 1);
-            Tank tank3 = new(3, 3000, 3000, "Резервуар 3", "Надземный-горизонтальный", 2);
-            Tank tank4 = new(4, 3000, 3000, "Резервуар 4", "Надземный-вертикальный", 2);
-            Tank tank5 = new(5, 4000, 5000, "Резервуар 5", "Подземный-двустенный", 2);
-            Tank tank6 = new(6, 500, 500, "Резервуар 6", "Подводный", 3);
-            return [tank1, tank2, tank3, tank4, tank5, tank6];
-
-
+            string json = File.ReadAllText(jsonPath);
+            IEnumerable<Tank>? tanks = JsonSerializer.Deserialize<Tank[]>(json);
+            return tanks ?? Enumerable.Empty<Tank>();
         }
+
         // реализуйте этот метод, чтобы он возвращал массив установок, согласно приложенным таблицам
-        public static Unit[] GetUnits()
+        public static IEnumerable<Unit> GetUnits(string jsonPath)
         {
-            // ваш код здесь
-            Unit unit1 = new(1, "ГФУ-2", "Газофракционирующая установка", 1);
-            Unit unit2 = new(2, "АВТ-6", "Атмосферно-вакуумная трубчатка", 1);
-            Unit unit3 = new(3, "АВТ-10", "Атмосферно - вакуумная трубчатка", 2);
-            return [unit1, unit2, unit3];
+            string json = File.ReadAllText(jsonPath);
+            IEnumerable<Unit>? units = JsonSerializer.Deserialize<Unit[]>(json);
+            return units ?? Enumerable.Empty<Unit>();
         }
-        // реализуйте этот метод, чтобы он возвращал массив заводов, согласно приложенным таблицам
-        public static Factory[] GetFactories()
-        {
-            // ваш код здесь
-            Factory factory1 = new(1, "НПЗ№1", "Первый нефтеперерабатывающий завод");
-            Factory factory2 = new(2, "НПЗ№2", "Второй нефтеперерабатывающий завод");
 
-            return [factory1, factory2];
+        // реализуйте этот метод, чтобы он возвращал массив заводов, согласно приложенным таблицам
+        public static IEnumerable<Factory> GetFactories(string jsonPath)
+        {
+            string json = File.ReadAllText(jsonPath);
+            IEnumerable<Factory>? factories = JsonSerializer.Deserialize<Factory[]>(json);
+            return factories ?? Enumerable.Empty<Factory>();
         }
 
         // реализуйте этот метод, чтобы он возвращал установку (Unit), которой
         // принадлежит резервуар (Tank), найденный в массиве резервуаров по имени
         // учтите, что по заданному имени может быть не найден резервуар
-        public static Unit FindUnit(Unit[] units, Tank[] tanks, string unitName)
+        public static Unit? FindUnit(IEnumerable<Unit> units, IEnumerable<Tank> tanks, string unitName)
         {
             foreach (Tank tank in tanks)
             {
@@ -72,7 +86,7 @@
         }
 
         // реализуйте этот метод, чтобы он возвращал объект завода, соответствующий установке
-        public static Factory FindFactory(Factory[] factories, Unit unit)
+        public static Factory? FindFactory(IEnumerable<Factory> factories, Unit unit)
         {
             foreach (Factory fact in factories)
                 if (unit?.FactoryId == fact.Id)
@@ -81,7 +95,7 @@
         }
 
         // реализуйте этот метод, чтобы он возвращал суммарный объем резервуаров в массиве
-        public static int GetTotalVolume(Tank[] tanks)
+        public static int GetTotalVolume(IEnumerable<Tank> tanks)
         {
             var totalVolume = 0;
             foreach (Tank tank in tanks)
@@ -90,5 +104,6 @@
             }
             return totalVolume;
         }
+
     }
 }
