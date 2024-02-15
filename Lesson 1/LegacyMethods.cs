@@ -10,7 +10,7 @@ namespace dotnetLearning.Lesson_1
         /// Тестовый метод создания объектов через оператор new
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<Tank> OldGetTanks()
+        private static IEnumerable<Tank> OldGetTanks()
         {
             // ваш код здесь
             Tank[] tanks =
@@ -26,7 +26,7 @@ namespace dotnetLearning.Lesson_1
             return tanks;
         }
 
-        public static IEnumerable<Factory> OldGetFactories()
+        private static IEnumerable<Factory> OldGetFactories()
         {
             // ваш код здесь
             Factory factory1 = new(1, "НПЗ№1", "Первый нефтеперерабатывающий завод");
@@ -35,7 +35,7 @@ namespace dotnetLearning.Lesson_1
             return [factory1, factory2];
         }
 
-        public static IEnumerable<Unit> OldGetUnits()
+        private static IEnumerable<Unit> OldGetUnits()
         {
             // ваш код здесь
             Unit unit1 = new(1, "ГФУ-2", "Газофракционирующая установка", 1);

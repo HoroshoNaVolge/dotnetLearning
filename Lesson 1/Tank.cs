@@ -19,8 +19,6 @@ namespace dotnetLearning.Lesson1
         public string Description { get; private set; }
 
         public int UnitId {  get; private set; }
-        
-
 
         public Tank(int id, int volume, int maxVolume, string name, string description, int unitId)
         {

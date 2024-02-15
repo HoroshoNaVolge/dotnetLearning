@@ -69,41 +69,20 @@ namespace dotnetLearning.Lesson1
         // реализуйте этот метод, чтобы он возвращал установку (Unit), которой
         // принадлежит резервуар (Tank), найденный в массиве резервуаров по имени
         // учтите, что по заданному имени может быть не найден резервуар
-        public static Unit? FindUnit(IEnumerable<Unit> units, IEnumerable<Tank> tanks, string unitName)
+        public static Unit? FindUnit(IEnumerable<Unit> units, IEnumerable<Tank> tanks, string tankName)
         {
-            foreach (Tank tank in tanks)
-            {
-                if (tank.Name == unitName)
-                {
-                    foreach (Unit unit in units)
-                    {
-                        if (tank.UnitId == unit.Id)
-                            return unit;
-                    }
-                }
-            }
-            return null;
+            var foundUnit = from tank in tanks
+                            where tank.Name == tankName
+                            join u in units on tank.UnitId equals u.Id
+                            select new Unit(u.Id, u.Name, u.Description, u.FactoryId);
+            return foundUnit.First();
         }
 
         // реализуйте этот метод, чтобы он возвращал объект завода, соответствующий установке
-        public static Factory? FindFactory(IEnumerable<Factory> factories, Unit unit)
-        {
-            foreach (Factory fact in factories)
-                if (unit?.FactoryId == fact.Id)
-                    return fact;
-            return null;
-        }
+        public static Factory? FindFactory(IEnumerable<Factory> factories, Unit unit) => factories.FirstOrDefault(factory => factory.Id == unit.Id);
 
         // реализуйте этот метод, чтобы он возвращал суммарный объем резервуаров в массиве
-        public static int GetTotalVolume(IEnumerable<Tank> tanks)
-        {
-            var totalVolume = 0;
-            foreach (Tank tank in tanks)
-            {
-                totalVolume += tank.Volume;
-            }
-            return totalVolume;
-        }
+        public static int GetTotalVolume(IEnumerable<Tank> tanks) => tanks.Sum(tank => tank.Volume);
 
     }
 }
