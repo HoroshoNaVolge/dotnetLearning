@@ -23,7 +23,7 @@ namespace dotnetLearning.Other
         {
             await GetAsyncMultipleObjects(_httpClient, "todos?userId=1&completed=false");
 
-            await GetAsyncSingleObject(_httpClient, "todos/m,l");
+            await GetAsyncSingleObject(_httpClient, "todos/3");
         }
 
         public static async Task GetAsyncSingleObject(HttpClient httpClient, string path)
