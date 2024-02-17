@@ -1,8 +1,4 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Channels;
-using System.Xml;
+﻿using System.Text.Json;
 
 namespace dotnetLearning.Lesson1
 {
