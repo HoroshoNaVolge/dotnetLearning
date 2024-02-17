@@ -26,8 +26,14 @@ namespace dotnetLearning.Lesson3
                 var token = "bbc8e57adbc7bebaf5265017740c30fce634cdc0";
                 var api = new SuggestClientAsync(token);
                 var response = await api.FindParty(companyInn);
-
-                Console.WriteLine(response.suggestions[0].value);
+                if (response.suggestions.Count > 0)
+                {
+                    Console.WriteLine(response.suggestions[0].value);
+                }
+                else
+                {
+                    Console.WriteLine($"Не найдено компании с ИНН: {companyInn}");
+                }
             }
         }
     }

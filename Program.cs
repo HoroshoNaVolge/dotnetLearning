@@ -5,14 +5,14 @@ using dotnetLearning.Other;
 
 internal class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         // Lesson1.Run();
         // Lesson2.Run();
         // JsonLearn.Run();
         // LinqLearn.Run();
-        LearnWebApi.Run();
-        Lesson3.RunAsyncUsingDadataPackage("7728437776").Wait();
+        await LearnWebApi.Run();    
+      //  await Lesson3.RunAsyncUsingDadataPackage("7728437776s");
     }
 
    

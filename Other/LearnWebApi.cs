@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using System.Data;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace dotnetLearning.Other
 {
@@ -11,54 +13,38 @@ namespace dotnetLearning.Other
 
     internal static class LearnWebApi
     {
-        internal static void Run()
+        #region fields
+        private static HttpClient _httpClient = new() { BaseAddress = new Uri("https://jsonplaceholder.typicode.com") };
+        #endregion
+
+        #region methods
+        internal static async Task Run()
         {
-            HttpClient client = GetHttpClient("https://jsonplaceholder.typicode.com");
-            GetAsync(client).Wait();
-            GetFromJsonAsync(client, "todos?userId=1&completed=false").Wait();
+            await GetAsync(_httpClient, "todos?userId=1&completed=false");
+            await GetAsync(_httpClient, "todos/3"); // крашится на преобразовании JSON в List<Todo> (по адресу JSON на 1 объект)
         }
-
-        private static HttpClient? _httpClient;
-
-        public static HttpClient GetHttpClient(string uri)
+        public static async Task GetAsync(HttpClient httpClient, string path)
         {
-
-            if (_httpClient == null)
-            {
-                return _httpClient = new() { BaseAddress = new Uri(uri) };
-            }
-            return _httpClient;
-        }
-
-        public static async Task GetFromJsonAsync(HttpClient httpClient, string path)
-        {
-            // через расширение
+            // через расширение GetFromJsonAsync
+            await Console.Out.WriteLineAsync("Выполняется через расширение GetFromJsonAsync:\n");
             var todos = await httpClient.GetFromJsonAsync<List<Todo>>(path);
-
-            // по классике через HttpResponseMessage
-            using HttpResponseMessage response = await httpClient.GetAsync(path);
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-
-            List<Todo>? todos2 = JsonSerializer.Deserialize<List<Todo>>(jsonResponse);
             todos?.ForEach(Console.WriteLine);
 
 
-        }
-        public static async Task GetAsync(HttpClient httpClient)
-        {
-            using HttpResponseMessage response = await httpClient.GetAsync("todos/3");
-
-            try { response.EnsureSuccessStatusCode(); }
-            catch (Exception ex)
+            // через HttpResponseMessage.
+            await Console.Out.WriteAsync("\nВыполняется через расширение HttpResponseMessage:\n");
+            using HttpResponseMessage response = await httpClient.GetAsync(path);
+            if (response.IsSuccessStatusCode)
             {
-                await Console.Out.WriteLineAsync(ex.Message);
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                // Не могу понять почему не десериализует из потока json в List<ToDo> 
+                var result = await JsonSerializer.DeserializeAsync<List<Todo>>(contentStream);
             }
-
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"{jsonResponse}\n");
+            else
+            {
+                Console.WriteLine($"HTTP запрос неуспешен. Код: {response.StatusCode}");
+            }
         }
+        #endregion
     }
-
-
 }
-
