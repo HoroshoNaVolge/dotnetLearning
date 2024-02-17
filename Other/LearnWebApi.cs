@@ -1,15 +1,16 @@
 ﻿using System.Data;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Channels;
 
 namespace dotnetLearning.Other
 {
     public record class Todo(
-    int? UserId = null,
-    int? Id = null,
-    string? Title = null,
-    bool? Completed = null);
+    int? userId = null,
+    int? id = null,
+    string? title = null,
+    bool? completed = null);
 
     internal static class LearnWebApi
     {
@@ -20,31 +21,91 @@ namespace dotnetLearning.Other
         #region methods
         internal static async Task Run()
         {
-            await GetAsync(_httpClient, "todos?userId=1&completed=false");
-            await GetAsync(_httpClient, "todos/3"); // крашится на преобразовании JSON в List<Todo> (по адресу JSON на 1 объект)
+            await GetAsyncMultipleObjects(_httpClient, "todos?userId=1&completed=false");
+
+            await GetAsyncSingleObject(_httpClient, "todos/m,l");
         }
-        public static async Task GetAsync(HttpClient httpClient, string path)
+
+        public static async Task GetAsyncSingleObject(HttpClient httpClient, string path)
         {
             // через расширение GetFromJsonAsync
-            await Console.Out.WriteLineAsync("Выполняется через расширение GetFromJsonAsync:\n");
-            var todos = await httpClient.GetFromJsonAsync<List<Todo>>(path);
-            todos?.ForEach(Console.WriteLine);
+            await Console.Out.WriteLineAsync("Выполняется получение 1 объекта через расширение GetFromJsonAsync:\n");
 
+            var singleTodo = await httpClient.GetFromJsonAsync<Todo>(path);
+            await Console.Out.WriteLineAsync(singleTodo?.ToString());
 
             // через HttpResponseMessage.
-            await Console.Out.WriteAsync("\nВыполняется через расширение HttpResponseMessage:\n");
+            await Console.Out.WriteAsync("\nВыполняется получение 1 объекта через HttpResponseMessage:\n");
+
             using HttpResponseMessage response = await httpClient.GetAsync(path);
             if (response.IsSuccessStatusCode)
             {
                 var contentStream = await response.Content.ReadAsStreamAsync();
-                // Не могу понять почему не десериализует из потока json в List<ToDo> 
-                var result = await JsonSerializer.DeserializeAsync<List<Todo>>(contentStream);
+                var result = await JsonSerializer.DeserializeAsync<Todo>(contentStream);
+
+                await Console.Out.WriteLineAsync(result?.ToString());
             }
             else
             {
                 Console.WriteLine($"HTTP запрос неуспешен. Код: {response.StatusCode}");
             }
         }
+
+        public static async Task GetAsyncMultipleObjects(HttpClient httpClient, string path)
+        {
+            // через расширение GetFromJsonAsync
+            await Console.Out.WriteLineAsync("Выполняется получение множества объектов через расширение GetFromJsonAsync:\n");
+
+            var todos = await httpClient.GetFromJsonAsync<List<Todo>>(path);
+            todos?.ForEach(Console.WriteLine);
+
+            // через HttpResponseMessage.
+            await Console.Out.WriteAsync("\nВыполняется получение множества объектов через HttpResponseMessage:\n");
+
+            using HttpResponseMessage response = await httpClient.GetAsync(path);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                var result = await JsonSerializer.DeserializeAsync<List<Todo>>(contentStream);
+
+                result?.ForEach(Console.WriteLine);
+            }
+            else
+            {
+                Console.WriteLine($"HTTP запрос неуспешен. Код: {response.StatusCode}");
+            }
+        }
+          //Не работает пока. Буду разбираться.
+          public static async Task<T> DeserializeJsonAsync<T>(Stream stream)
+          {
+              using (StreamReader reader = new StreamReader(stream))
+              {
+                  string jsonContent = await reader.ReadToEndAsync();
+
+                  JsonDocument jsonDocument = JsonDocument.Parse(jsonContent);
+
+                  if (jsonDocument.RootElement.ValueKind == JsonValueKind.Array)
+                  {
+
+                      List<T> resultList = JsonSerializer.Deserialize<List<T>>(jsonContent);
+
+
+                      return resultList.FirstOrDefault() ?? default;
+                  }
+                  else
+                  {
+                      try
+                      {
+                          T result = JsonSerializer.Deserialize<T>(jsonContent);
+                          return result;
+                      }
+                      catch (JsonException)
+                      {
+                          return default;
+                      }
+                  }
+              }
+          }
         #endregion
     }
 }
