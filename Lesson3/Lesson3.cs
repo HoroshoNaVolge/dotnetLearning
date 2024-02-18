@@ -1,10 +1,4 @@
 ﻿using Dadata;
-using Dadata.Model;
-using System.Net.Sockets;
-using dotnetLearning.Other;
-using System.IO;
-using System.Net.Http;
-using System.Net.Mail;
 
 namespace dotnetLearning.Lesson3
 {
@@ -26,14 +20,8 @@ namespace dotnetLearning.Lesson3
                 var token = "bbc8e57adbc7bebaf5265017740c30fce634cdc0";
                 var api = new SuggestClientAsync(token);
                 var response = await api.FindParty(companyInn);
-                if (response.suggestions.Count > 0)
-                {
-                    Console.WriteLine(response.suggestions[0].value);
-                }
-                else
-                {
-                    Console.WriteLine($"Не найдено компании с ИНН: {companyInn}");
-                }
+
+                Console.WriteLine(response?.suggestions?.FirstOrDefault()?.value);
             }
         }
     }
