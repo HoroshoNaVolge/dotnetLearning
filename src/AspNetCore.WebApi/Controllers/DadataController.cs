@@ -15,13 +15,13 @@ namespace AspNetCore.WebApi.Controllers
         }
 
         [HttpGet(template: "get")]
-        public async Task<ActionResult<string>> GetOrganizationInfo(string inn)
+        public async Task<ActionResult<string>> GetOrganizationInfo(string inn, CancellationToken token)
         {
-            var organizationName = await _dadataService.GetOrganizationNameByInnAsync(inn);
+            var organizationInfo = await _dadataService.GetOrganizationNameByInnAsync(inn,token);
 
-            if (organizationName != null) { return Ok(organizationName); }
+            if (organizationInfo.IsSuccess) { return Ok(organizationInfo.OrganizationName); }
 
-            else return NotFound($"Не найдена компания с ИНН: {inn}");
+            else return NotFound(organizationInfo.ErrorDescription);
         }
     }
 }

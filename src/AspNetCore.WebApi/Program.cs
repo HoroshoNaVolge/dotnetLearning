@@ -6,18 +6,16 @@ namespace AspNetCore.WebApi
     {
         public static void Main(string[] args)
         {
-            Other.AutofacLearn.Run();
-
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Configuration.AddJsonFile("appsettings.json");
-            builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+            builder.Configuration.AddJsonFile("appsettings.Development.json");
 
-            builder.Services.Configure<DadataServiceOptions>(builder.Configuration.GetSection("DaData"));
+            builder.Services.Configure<DadataServiceOptions>(builder.Configuration.GetSection(DadataServiceOptions.SectionName));
 
             builder.Services.AddHttpClient("DadataClient", client =>
             {
-                var options = builder.Configuration.GetSection("Dadata").Get<DadataServiceOptions>();
+                var options = builder.Configuration.GetSection(DadataServiceOptions.SectionName).Get<DadataServiceOptions>();
                 client.BaseAddress = new Uri(options.DaDataApiBaseUrl);
                 client.DefaultRequestHeaders.Add("Authorization", $"Token {options.DaDataApiToken}");
             });

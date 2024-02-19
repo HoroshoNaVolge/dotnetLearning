@@ -1,6 +1,6 @@
 ﻿using Autofac;
 
-namespace AspNetCore.WebApi.Other
+namespace dotnetLearning.Other
 {
     public static class AutofacLearn
     {

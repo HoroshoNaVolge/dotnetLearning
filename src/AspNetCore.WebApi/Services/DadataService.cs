@@ -1,10 +1,11 @@
-﻿using System.Text.Json;
+﻿using AspNetCore.WebApi.Models;
+using System.Text.Json;
 
 namespace AspNetCore.WebApi.Services
 {
     public interface IDadataService
     {
-        Task<string> GetOrganizationNameByInnAsync(string inn);
+        Task<QueryOrganizationResult> GetOrganizationNameByInnAsync(string inn, CancellationToken token);
     }
 
     public class DadataService : IDadataService
@@ -16,27 +17,26 @@ namespace AspNetCore.WebApi.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string?> GetOrganizationNameByInnAsync(string inn)
+        public async Task<QueryOrganizationResult> GetOrganizationNameByInnAsync(string inn, CancellationToken token)
         {
             var httpClient = _httpClientFactory.CreateClient("DadataClient");
             var response = await httpClient.GetAsync($"?query={inn}");
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
+                return new() { IsSuccess = false, ErrorDescription = "Ошибка запроса к API", OrganizationName = null };
+
+            else
             {
                 using var stream = await response.Content.ReadAsStreamAsync();
-                using var jsonDocument = await JsonDocument.ParseAsync(stream);
-                var root = jsonDocument.RootElement;
+                var result = JsonSerializer.Deserialize<QueryOrganizationResult>(stream);
 
-                var suggestionsArray = root.GetProperty("suggestions").EnumerateArray();
-                try
-                {
-                    var firstSuggestion = suggestionsArray.FirstOrDefault();
-                    return firstSuggestion.GetProperty("value").GetString();
-                }
-                catch { return null; }
+                // тут ошибка. Смотреть в suggestions, 
+                if (result.suggestions.Count() == 0)
+                    return new() { IsSuccess = false, ErrorDescription = $"Не найдена организация с ИНН {inn}", OrganizationName = null };
+                return new() { IsSuccess = true, OrganizationName = result.suggestions.FirstOrDefault()?.value };
+
             }
 
-            return $"HTTP запрос не успешен. Код: {response.StatusCode}";
         }
     }
 }
