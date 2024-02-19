@@ -11,6 +11,7 @@ internal class Program
         // Lesson2.Run();
         // JsonLearn.Run();
         // LinqLearn.Run();
+        await Console.Out.WriteLineAsync();// для тестового коммита, проверить будет ли доступен reviewer на ГХ, если пушить из той же ветки lesson3
         await LearnWebApi.Run();
         await Lesson3.RunAsyncUsingDadataPackage("7728437776");
 
