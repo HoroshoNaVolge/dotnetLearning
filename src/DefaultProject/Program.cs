@@ -1,4 +1,4 @@
-﻿using dotnetLearning.Lesson1;
+using dotnetLearning.Lesson1;
 using dotnetLearning.Lesson2;
 using dotnetLearning.Lesson3;
 using dotnetLearning.Other;
