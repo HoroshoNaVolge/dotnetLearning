@@ -11,6 +11,7 @@ namespace AspNetCore.WebApi
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Configuration.AddJsonFile("appsettings.json");
+            builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 
             builder.Services.Configure<DadataServiceOptions>(builder.Configuration.GetSection("DaData"));
 
