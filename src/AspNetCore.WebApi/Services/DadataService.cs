@@ -11,7 +11,6 @@ namespace AspNetCore.WebApi.Services
     public class DadataService : IDadataService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-
         public DadataService(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
@@ -20,23 +19,21 @@ namespace AspNetCore.WebApi.Services
         public async Task<QueryOrganizationResult> GetOrganizationNameByInnAsync(string inn, CancellationToken token)
         {
             var httpClient = _httpClientFactory.CreateClient("DadataClient");
-            var response = await httpClient.GetAsync($"?query={inn}");
+            var response = await httpClient.GetAsync($"?query={inn}", token);
 
-            if (!response.IsSuccessStatusCode)
-                return new() { IsSuccess = false, ErrorDescription = "Ошибка запроса к API", OrganizationName = null };
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+
+                return new() { IsSuccess = false, ErrorDescription = "В запросе использован невалидный API токен", OrganizationName = null };
 
             else
             {
-                using var stream = await response.Content.ReadAsStreamAsync();
+                using var stream = await response.Content.ReadAsStreamAsync(token);
                 var result = JsonSerializer.Deserialize<QueryOrganizationResult>(stream);
 
-                // тут ошибка. Смотреть в suggestions, 
-                if (result.suggestions.Count() == 0)
+                if (result == null || result?.Suggestions?.Count() == 0)
                     return new() { IsSuccess = false, ErrorDescription = $"Не найдена организация с ИНН {inn}", OrganizationName = null };
-                return new() { IsSuccess = true, OrganizationName = result.suggestions.FirstOrDefault()?.value };
-
+                return new() { IsSuccess = true, OrganizationName = result?.Suggestions?.FirstOrDefault()?.Value };
             }
-
         }
     }
 }

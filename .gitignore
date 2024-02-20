@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 /src/AspNetCore.WebApi/appsettings.Development.json
 /src/AspNetCore.WebApi/appsettings.json
+/src/AspNetCore.WebApi/appsettings.Development.json
