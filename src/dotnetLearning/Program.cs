@@ -1,6 +1,6 @@
-﻿using dotnetLearning.Lesson1;
-using dotnetLearning.Lesson2;
-using dotnetLearning.Lesson3;
+﻿using dotnetLearning.FactoryApp;
+using dotnetLearning.JsonParserApp;
+using dotnetLearning.DadataAppConsole;
 using dotnetLearning.Other;
 
 internal class Program
@@ -12,7 +12,8 @@ internal class Program
         // JsonLearn.Run();
         // LinqLearn.Run();
         await LearnWebApi.Run();
-        await Lesson3.RunAsyncUsingDadataPackage("7728437776");
+        StartJsonParserApp.Run();
+        await StartDadataAppConsole.RunAsyncUsingDadataPackage("7728437776");
 
         //foreach (var i in new IEnumerableLearn()) { await Console.Out.WriteLineAsync(i.ToString()); }
         //foreach (var i in new IEnumerableLearnWithOwnEnumerator()) { await Console.Out.WriteLineAsync(i.ToString()); }

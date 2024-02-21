@@ -1,8 +1,6 @@
-﻿using System.Text.Json;
-
-namespace dotnetLearning.Lesson2
+﻿namespace dotnetLearning.JsonParserApp
 {
-    internal class Lesson2
+    internal class StartJsonParserApp
     {
         internal static void Run()
         {

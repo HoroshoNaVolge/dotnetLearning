@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace dotnetLearning.Lesson1
+namespace dotnetLearning.FactoryApp
 {
-    internal static class Lesson1
+    internal static class StartFactoryApp
     {
         internal static void Run()
         {

@@ -1,8 +1,7 @@
-﻿using dotnetLearning.Lesson1;
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace dotnetLearning.Lesson_1
+namespace dotnetLearning.FactoryApp
 {
     internal class LegacyMethods
     {
