@@ -10,23 +10,11 @@ namespace AspNetCore.WebApi
 
             builder.Services.Configure<DadataServiceOptions>(builder.Configuration.GetSection(DadataServiceOptions.SectionName));
 
-            // Не совсем уверен, что правильно передавать options потом в ConfigureHttpClient из этого контекста.
             var options = builder.Configuration.GetSection(DadataServiceOptions.SectionName).Get<DadataServiceOptions>();
             if (string.IsNullOrEmpty(options?.DaDataApiBaseUrl))
                 throw new ArgumentNullException("Нет DaDataApiBaseUrl в файле конфигурации");
             if (string.IsNullOrEmpty(options.DaDataApiToken))
                 throw new ArgumentNullException("Нет DaDataAPIToken в файле конфигурации");
-
-            // Через новый сервис провайдер, но VS ругается, что надо делать только одним провайдером
-            //var serviceProvider = new ServiceCollection()
-            //    .Configure<DadataServiceOptions>(builder.Configuration.GetSection(DadataServiceOptions.SectionName))
-            //    .BuildServiceProvider();
-
-            //var options = serviceProvider.GetRequiredService<IOptions<DadataServiceOptions>>().Value;
-            //{
-            //    if (string.IsNullOrEmpty(options.DaDataApiBaseUrl))
-            //        throw new ArgumentNullException("Нет DaDataApiBaseUrl в файле конфигурации");
-            //}
 
             builder.Services.AddHttpClient("DadataClient")
            .ConfigureHttpClient((client) =>

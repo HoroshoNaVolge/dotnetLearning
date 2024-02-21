@@ -16,20 +16,15 @@ namespace AspNetCore.WebApi.Services
             var response = await httpClient.GetAsync($"?query={inn}", token);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-
                 return new() { IsSuccess = false, ErrorDescription = "В запросе использован невалидный API токен", OrganizationName = null };
 
-            else
-            {
-                using var stream = await response.Content.ReadAsStreamAsync(token);
-                var result = JsonSerializer.Deserialize<QueryOrganizationResult>(stream);
+            using var stream = await response.Content.ReadAsStreamAsync(token);
+            var result = JsonSerializer.Deserialize<Suggestion>(stream);
 
-                var item = result?.Suggestions?.FirstOrDefault()?.Value;
-
-                if (item is null)
-                    return new() { IsSuccess = false, ErrorDescription = $"Не найдена организация с ИНН {inn}", OrganizationName = null };
-                return new() { IsSuccess = true, OrganizationName = item };
-            }
+            var item = result?.Suggestions?.FirstOrDefault()?.Value;
+            if (item is null)
+                return new() { IsSuccess = false, ErrorDescription = $"Не найдена организация с ИНН {inn}", OrganizationName = null };
+            return new() { IsSuccess = true, OrganizationName = item };
         }
     }
 }
