@@ -19,7 +19,7 @@ namespace AspNetCore.WebApi.Services
                 return new() { IsSuccess = false, ErrorDescription = "В запросе использован невалидный API токен", OrganizationName = null };
 
             using var stream = await response.Content.ReadAsStreamAsync(token);
-            var result = JsonSerializer.Deserialize<Suggestion>(stream);
+            var result = JsonSerializer.Deserialize<SuggestionResponse>(stream);
 
             var item = result?.Suggestions?.FirstOrDefault()?.Value;
             if (item is null)

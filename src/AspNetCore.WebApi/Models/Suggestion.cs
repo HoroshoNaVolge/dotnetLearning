@@ -2,10 +2,13 @@
 
 namespace AspNetCore.WebApi.Models
 {
-    internal class Suggestion
+    internal class SuggestionResponse
     {
         [JsonPropertyName("suggestions")]
-        public Suggestion[]? Suggestions { get; set; }
+        public IEnumerable<Suggestion>? Suggestions { get; set; }
+    }
+    internal class Suggestion
+    {
         [JsonPropertyName("value")]
         public string? Value { get; set; }
     }
