@@ -1,5 +1,4 @@
-using AspNetCore.WebApi.Services;
-using Microsoft.Extensions.Options;
+﻿using AspNetCore.WebApi.Services;
 
 namespace AspNetCore.WebApi
 {
@@ -11,18 +10,30 @@ namespace AspNetCore.WebApi
 
             builder.Services.Configure<DadataServiceOptions>(builder.Configuration.GetSection(DadataServiceOptions.SectionName));
 
-            builder.Services.AddHttpClient("DadataClient")
-               .ConfigureHttpClient((sp, client) =>
-           {
-               var options = sp.GetRequiredService<IOptions<DadataServiceOptions>>().Value;
-               {
-                   if (options.DaDataApiBaseUrl == null)
-                       throw new ArgumentNullException("��� DaDataApiBaseUrl � ����� ������������ ��� � ��������� �� ��������������� ���� ������������");
+            // Не совсем уверен, что правильно передавать options потом в ConfigureHttpClient из этого контекста.
+            var options = builder.Configuration.GetSection(DadataServiceOptions.SectionName).Get<DadataServiceOptions>();
+            if (string.IsNullOrEmpty(options?.DaDataApiBaseUrl))
+                throw new ArgumentNullException("Нет DaDataApiBaseUrl в файле конфигурации");
+            if (string.IsNullOrEmpty(options.DaDataApiToken))
+                throw new ArgumentNullException("Нет DaDataAPIToken в файле конфигурации");
 
-                   client.BaseAddress = new Uri(options.DaDataApiBaseUrl);
-                   client.DefaultRequestHeaders.Add("Authorization", $"Token {options.DaDataApiToken}");
-               }
-           });
+            // Через новый сервис провайдер, но VS ругается, что надо делать только одним провайдером
+            //var serviceProvider = new ServiceCollection()
+            //    .Configure<DadataServiceOptions>(builder.Configuration.GetSection(DadataServiceOptions.SectionName))
+            //    .BuildServiceProvider();
+
+            //var options = serviceProvider.GetRequiredService<IOptions<DadataServiceOptions>>().Value;
+            //{
+            //    if (string.IsNullOrEmpty(options.DaDataApiBaseUrl))
+            //        throw new ArgumentNullException("Нет DaDataApiBaseUrl в файле конфигурации");
+            //}
+
+            builder.Services.AddHttpClient("DadataClient")
+           .ConfigureHttpClient((client) =>
+       {
+           client.BaseAddress = new Uri(options.DaDataApiBaseUrl);
+           client.DefaultRequestHeaders.Add("Authorization", $"Token {options.DaDataApiToken}");
+       });
 
             builder.Services.AddScoped<IDadataService, DadataService>();
 

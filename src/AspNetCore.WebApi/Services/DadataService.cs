@@ -8,17 +8,11 @@ namespace AspNetCore.WebApi.Services
         Task<QueryOrganizationResult> GetOrganizationNameByInnAsync(string inn, CancellationToken token);
     }
 
-    public class DadataService : IDadataService
+    public class DadataService(IHttpClientFactory httpClientFactory) : IDadataService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        public DadataService(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
         public async Task<QueryOrganizationResult> GetOrganizationNameByInnAsync(string inn, CancellationToken token)
         {
-            var httpClient = _httpClientFactory.CreateClient("DadataClient");
+            var httpClient = httpClientFactory.CreateClient("DadataClient");
             var response = await httpClient.GetAsync($"?query={inn}", token);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
@@ -30,9 +24,11 @@ namespace AspNetCore.WebApi.Services
                 using var stream = await response.Content.ReadAsStreamAsync(token);
                 var result = JsonSerializer.Deserialize<QueryOrganizationResult>(stream);
 
-                if (result == null || result?.Suggestions?.Count() == 0)
+                var item = result?.Suggestions?.FirstOrDefault()?.Value;
+
+                if (item is null)
                     return new() { IsSuccess = false, ErrorDescription = $"Не найдена организация с ИНН {inn}", OrganizationName = null };
-                return new() { IsSuccess = true, OrganizationName = result?.Suggestions?.FirstOrDefault()?.Value };
+                return new() { IsSuccess = true, OrganizationName = item };
             }
         }
     }
