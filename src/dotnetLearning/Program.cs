@@ -6,59 +6,31 @@ using Microsoft.Extensions.Configuration;
 using dotnetLearning.FactoryApp.Service;
 using Microsoft.Extensions.DependencyInjection;
 using dotnetLearning.FactoryApp.Service.FacilityService;
+using dotnetLearning.FactoryApp.View;
+
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         using IHost host = Host.CreateApplicationBuilder(args).Build();
 
         IConfigurationRoot config = new ConfigurationBuilder()
-            .AddJsonFile("C:\\Users\\user\\Desktop\\dotnetLearning\\src\\dotnetLearning\\appsettings.json")
+            //Для Visual Studio. Несколько раз вверх, т.к. current directory выдаёт /bin/debug/dotnet8.0.
+            .AddJsonFile(Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "../../../appsettings.json")))
             .Build();
 
         var services = new ServiceCollection();
         services.Configure<FacilityServiceOptions>(config.GetSection("FilePath"));
 
-        var options = config.GetSection("FilePath").Get<FacilityServiceOptions>() ?? throw new ArgumentNullException($"Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
+        var options = config.GetSection("FilePath").Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
 
         services.AddSingleton<FactoryAppService>();
+        services.AddSingleton<IView, ConsoleView>();
         services.AddScoped<IFacilityService, FacilityService>();
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-        var app = serviceProvider.GetService<FactoryAppService>() ?? throw new ArgumentNullException("Ошибка регистрации сервисов в контейнере зависимостей");
-        app.Run();
+        var app = serviceProvider.GetService<FactoryAppService>() ?? throw new ArgumentNullException(nameof(FactoryAppService), "Ошибка регистрации сервисов в контейнере зависимостей");
+        await app.RunAsync();
     }
 }
-
-//StartFactoryApp.Run();
-// Lesson2.Run();
-// JsonLearn.Run();
-// LinqLearn.Run();
-// await LearnWebApi.Run();
-// StartJsonParserApp.Run();
-// await StartDadataAppConsole.RunAsyncUsingDadataPackage("7728437776");
-
-//foreach (var i in new IEnumerableLearn()) { await Console.Out.WriteLineAsync(i.ToString()); }
-//foreach (var i in new IEnumerableLearnWithOwnEnumerator()) { await Console.Out.WriteLineAsync(i.ToString()); }
-
-//internal class Program
-//{
-
-//    static async Task Main(string[] args)
-//    {
-//        StartFactoryApp.Run();
-//        // Lesson2.Run();
-//        // JsonLearn.Run();
-//        // LinqLearn.Run();
-//        // await LearnWebApi.Run();
-//        // StartJsonParserApp.Run();
-//        // await StartDadataAppConsole.RunAsyncUsingDadataPackage("7728437776");
-
-//        //foreach (var i in new IEnumerableLearn()) { await Console.Out.WriteLineAsync(i.ToString()); }
-//        //foreach (var i in new IEnumerableLearnWithOwnEnumerator()) { await Console.Out.WriteLineAsync(i.ToString()); }
-//    }
-//}
-
-
-

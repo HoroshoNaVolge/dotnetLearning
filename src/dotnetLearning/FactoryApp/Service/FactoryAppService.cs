@@ -1,27 +1,24 @@
-﻿using System.Text.Json;
-using dotnetLearning.FactoryApp.Model;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using dotnetLearning.FactoryApp.Service.FacilityService;
+using dotnetLearning.FactoryApp.View;
 
 namespace dotnetLearning.FactoryApp.Service
 {
-    public class FactoryAppService(IFacilityService facilityService)
+    public class FactoryAppService(IFacilityService facilityService, IView view, IOptions<FacilityServiceOptions> options)
     {
-        internal void Run()
+        internal async Task RunAsync()
         {
-             facilityService.SerializeDataJson(new List<Factory>() { new Factory(1, "SDADSDAS", "test"), new Factory(2, "fact2", "test") }
-                , new List<Unit>() { new Unit(1, "fact", "test", 1), new Unit(2, "fact2", "test", 2) }
-                , new List<Tank>() { new(1, 1000, 2000, "tank", "xiy", 2) });
+            if (options.Value.FacilitiesJsonFilePath is not null)
+                await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
+            else
+                throw new ArgumentNullException("Ошибка в файле конфигурации appsettings.json");
+
+            view.ShowMessage(facilityService.GetCurrentConfiguration());
+            view.ShowMessage(facilityService.GetTotalSummary());
+            view.ShowMessage(facilityService.GetTotalVolumeTanks());
 
 
-            //var tanks = GetTanks(@"\Json\Tanks.json");
-            //var units = GetUnits(@"C:\Units.json");
-            //var factories = GetFactories(@"C:\Factories.json");
-
-            //Console.WriteLine($"Количество резервуаров: {tanks.Count()}, установок: {units.Count()}");
+            // Комменты ниже допилю позже, также доп.задачи к первым урокам 
 
             //var foundUnit = FindUnit(units, tanks, "Резервуар 2");
             //var factory = FindFactory(factories, foundUnit);
@@ -46,32 +43,6 @@ namespace dotnetLearning.FactoryApp.Service
             //    Console.WriteLine($"{fact.Name}, {fact.Description}");
             //}
         }
-
-
-        // реализуйте этот метод, чтобы он возвращал массив резервуаров, согласно приложенным таблицам
-        // можно использовать создание объектов прямо в C# коде через new, или читать из файла (на своё усмотрение)
-        //public static IEnumerable<Tank> GetTanks(string jsonPath)
-        //{
-        //    string json = File.ReadAllText(jsonPath);
-        //    IEnumerable<Tank>? tanks = JsonSerializer.Deserialize<Tank[]>(json);
-        //    return tanks ?? Enumerable.Empty<Tank>();
-        //}
-
-        //// реализуйте этот метод, чтобы он возвращал массив установок, согласно приложенным таблицам
-        //public static IEnumerable<Unit> GetUnits(string jsonPath)
-        //{
-        //    string json = File.ReadAllText(jsonPath);
-        //    IEnumerable<Unit>? units = JsonSerializer.Deserialize<Unit[]>(json);
-        //    return units ?? Enumerable.Empty<Unit>();
-        //}
-
-        //// реализуйте этот метод, чтобы он возвращал массив заводов, согласно приложенным таблицам
-        //public static IEnumerable<Factory> GetFactories(string jsonPath)
-        //{
-        //    string json = File.ReadAllText(jsonPath);
-        //    IEnumerable<Factory>? factories = JsonSerializer.Deserialize<Factory[]>(json);
-        //    return factories ?? Enumerable.Empty<Factory>();
-        //}
 
         //// реализуйте этот метод, чтобы он возвращал установку (Unit), которой
         //// принадлежит резервуар (Tank), найденный в массиве резервуаров по имени

@@ -17,7 +17,6 @@ namespace dotnetLearning.FactoryApp.Model
         public string? Name { get; set; }
 
         public string? Description { get; set; }
-        [JsonPropertyName("factoryId")]
         public int FactoryId { get; set; }
 
         public override string ToString()

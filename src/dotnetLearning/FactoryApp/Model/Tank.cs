@@ -18,12 +18,8 @@ namespace dotnetLearning.FactoryApp.Model
         public int? Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-
-        [JsonPropertyName("unitId")]
         public int? UnitId { get; set; }
-        [JsonPropertyName("volume")]
         public int? Volume { get; set; }
-        [JsonPropertyName("maxVolume")]
         public int? MaxVolume { get; set; }
 
         public override string ToString()
