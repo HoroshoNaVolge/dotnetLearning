@@ -12,9 +12,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        using IHost host = Host.CreateApplicationBuilder(args).Build();
-
-        IConfigurationRoot config = new ConfigurationBuilder()
+         IConfigurationRoot config = new ConfigurationBuilder()
             //Для Visual Studio. Несколько раз вверх, т.к. current directory выдаёт /bin/debug/dotnet8.0.
             .AddJsonFile(Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "../../../appsettings.json")))
             .Build();
