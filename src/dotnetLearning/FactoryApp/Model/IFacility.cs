@@ -1,8 +1,11 @@
-namespace dotnetLearning.FactoryApp.Model{
-public interface IFacility
+using System.Text.Json.Serialization;
+
+namespace dotnetLearning.FactoryApp.Model
 {
-    public int Id{get;set;}
-    public string Name {get;set;}
-    public string Description{get;set;}
-}
+    public interface IFacility
+    {
+        public int? Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+    }
 }

@@ -7,9 +7,7 @@ namespace dotnetLearning.JsonParserApp
         public static IEnumerable<Deal> GetJsonFromFile(string path)
         {
             string fileContent = File.ReadAllText(path);
-            IEnumerable<Deal>? deserializedDeals = JsonSerializer.Deserialize<List<Deal>>(fileContent);
-            if (deserializedDeals is null)
-                return [];
+            IEnumerable<Deal> deserializedDeals = JsonSerializer.Deserialize<List<Deal>>(fileContent);
             return deserializedDeals;
         }
     }

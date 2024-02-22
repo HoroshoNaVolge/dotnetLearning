@@ -1,10 +1,12 @@
-﻿namespace dotnetLearning.JsonParserApp
+﻿using System.Reflection;
+
+namespace dotnetLearning.JsonParserApp
 {
     internal class StartJsonParserApp
     {
         internal static void Run()
         {
-            IEnumerable<Deal> objectsFromJson = JsonParser.GetJsonFromFile("./JsonParserApp/JSON_sample_1.json");
+            IEnumerable<Deal> objectsFromJson = JsonParser.GetJsonFromFile(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\JSON_sample_1.json");
 
             var result = GetNumbersOfDeals(objectsFromJson);
             Console.WriteLine("Номера 5 самых ранних сделок с суммой >100 руб по убыванию суммы: " + string.Join(", ", result));

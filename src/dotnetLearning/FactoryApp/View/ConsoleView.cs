@@ -4,7 +4,7 @@ namespace dotnetLearning.FactoryApp.View
     {
         public string? GetUserInput()
         {
-            System.Console.WriteLine();
+            return Console.ReadLine();
             
         }
 

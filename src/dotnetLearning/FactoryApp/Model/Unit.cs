@@ -1,10 +1,28 @@
-﻿namespace dotnetLearning.FactoryApp.Model
+﻿using System.Text.Json.Serialization;
+
+namespace dotnetLearning.FactoryApp.Model
 {
-    internal class Unit(int id, string name, string description, int factoryId):IFacility
+    public class Unit : IFacility
     {
-        public int Id { get; set; } = id;
-        public string Name { get; set; } = name;
-        public string Description { get; set; } = description;
-        public int FactoryId { get; set; } = factoryId;
+        public Unit() { }
+
+        public Unit(int id, string name, string description, int factoryId)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+            FactoryId = factoryId;
+        }
+        public int? Id { get; set; }
+        public string? Name { get; set; }
+
+        public string? Description { get; set; }
+        [JsonPropertyName("factoryId")]
+        public int FactoryId { get; set; }
+
+        public override string ToString()
+        {
+            return $"Название установки: {Name}. Описание: {Description}. Id: {Id}. Id завода {FactoryId}";
+        }
     }
 }

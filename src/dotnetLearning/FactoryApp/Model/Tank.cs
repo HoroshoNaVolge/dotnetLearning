@@ -1,12 +1,34 @@
-﻿namespace dotnetLearning.FactoryApp.Model
+﻿using System.Text.Json.Serialization;
+
+namespace dotnetLearning.FactoryApp.Model
 {
-    internal class Tank(int id, int volume, int maxVolume, string name, string description, int unitId):IFacility
+    public class Tank : IFacility
     {
-        public int Id { get; set; } = id;
-        public int Volume { get; set; } = volume;
-        public int MaxVolume { get; set; } = maxVolume;
-        public string Name { get; set; } = name;
-        public string Description { get; set; } = description;
-        public int UnitId { get; set; } = unitId;
+        public Tank() { }
+        public Tank(int id, int volume, int maxVolume, string name, string description, int unitId)
+        {
+            Id = id;
+            Volume = volume;
+            MaxVolume = maxVolume;
+            Name = name;
+            Description = description;
+            UnitId = unitId;
+        }
+
+        public int? Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+
+        [JsonPropertyName("unitId")]
+        public int? UnitId { get; set; }
+        [JsonPropertyName("volume")]
+        public int? Volume { get; set; }
+        [JsonPropertyName("maxVolume")]
+        public int? MaxVolume { get; set; }
+
+        public override string ToString()
+        {
+            return $"Название резервуара: {Name}. Описание: {Description}. Id: {Id}. Текущий объём: {Volume}. Максимальный объём {MaxVolume}";
+        }
     }
 }
