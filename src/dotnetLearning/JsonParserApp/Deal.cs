@@ -1,16 +1,9 @@
 ﻿namespace dotnetLearning.JsonParserApp
 {
-    internal class Deal
+    internal class Deal(DateTime date, string id, int sum)
     {
-        public DateTime Date { get; set; }
-        public string Id { get; set; }
-        public int Sum { get; set; }
-        
-        public Deal(DateTime date, string id, int sum)
-        {
-            Date = date;
-            Id = id;
-            Sum = sum;
-        }   
+        public DateTime Date { get; set; } = date;
+        public string Id { get; set; } = id;
+        public int Sum { get; set; } = sum;
     }
 }

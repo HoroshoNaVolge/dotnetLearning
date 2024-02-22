@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-
+using dotnetLearning.FactoryApp.Model;
 namespace dotnetLearning.FactoryApp
 {
     internal static class StartFactoryApp
