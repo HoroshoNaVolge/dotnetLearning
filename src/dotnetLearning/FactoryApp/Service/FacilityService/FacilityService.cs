@@ -10,19 +10,36 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
     {
         public Task SerializeDataJsonAsync(IEnumerable<Factory> factories, IEnumerable<Unit> units, IEnumerable<Tank> tanks, CancellationToken token);
         public Task DeserializeDataJson(string filePath);
+
         public string? GetCurrentConfiguration();
         public string? GetTotalSummary();
         public string? GetTotalVolumeTanks();
+
+        public string? GetTanksSummary();
+        public string? GetFactoriesSummary();
+        public string? GetUnitsSummary();
+
+        public Unit? FindUnit(string tankName);
+
+        public Factory? FindFactory(Unit unit);
+        public Factory? FindFactory(string unitName);
     }
 
     public class FacilityService : IFacilityService
     {
+        private JsonContainer? _container = null;
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true,
+        };
+
         private IEnumerable<Factory>? _factories = null;
         private IEnumerable<Unit>? _units = null;
         private IEnumerable<Tank>? _tanks = null;
 
         private readonly string _jsonFilePath;
-        private JsonContainer? container = null;
+
 
         public FacilityService(IOptions<FacilityServiceOptions> options)
         {
@@ -33,9 +50,9 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public async Task SerializeDataJsonAsync(IEnumerable<Factory> factories, IEnumerable<Unit> units, IEnumerable<Tank> tanks, CancellationToken token)
         {
-            container = new(factories, units, tanks);
+            _container = new(factories, units, tanks);
 
-            string json = JsonSerializer.Serialize(container, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, WriteIndented = true });
+            string json = JsonSerializer.Serialize(_container, _jsonSerializerOptions);
 
             using var writer = new StreamWriter(_jsonFilePath);
             await writer.WriteAsync(json);
@@ -51,45 +68,11 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             _tanks = deserializedContainer.Tank;
         }
 
-        public string? GetFactoriesSummary()
-        {
-            string factorySummary = string.Empty;
+        public string? GetFactoriesSummary() => _factories != null ? string.Join(Environment.NewLine, _factories) : null;
 
-            if (_factories != null)
-            {
-                foreach (var item in _factories)
-                    factorySummary += item.ToString();
-                return factorySummary;
-            }
-            return null;
-        }
+        public string? GetUnitsSummary() => _units != null ? string.Join(Environment.NewLine, _units) : null;
 
-        public string? GetUnitsSummary()
-        {
-            if (_units != null)
-            {
-                string unitsSummary = string.Empty;
-                foreach (var item in _units)
-
-                    unitsSummary += item.ToString();
-                return unitsSummary;
-            }
-            return null;
-        }
-
-        public string? GetTanksSummary()
-        {
-            if (_tanks != null)
-            {
-                string tankSummary = string.Empty;
-                foreach (var item in _tanks)
-                {
-                    tankSummary += item.ToString();
-                }
-                return tankSummary;
-            }
-            return null;
-        }
+        public string? GetTanksSummary() => _tanks != null ? string.Join(Environment.NewLine, _tanks) : null;
 
         public string? GetCurrentConfiguration() { return $"Количество резервуаров: {_tanks?.Count()}, установок: {_units?.Count()}"; }
 
@@ -116,5 +99,19 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
                 return $"Общая заполненность резервуаров, мт: {_tanks?.Sum(tank => tank.Volume)}";
             return null;
         }
+
+        public Unit? FindUnit(string tankName) =>
+            _units?.FirstOrDefault(u => _tanks?.Any(t => t.Name == tankName && t.UnitId == u.Id) == true);
+
+        // Считаю нужным перегрузить на приём строки параметром, т.к. работа с моделью не происходит вне класса FacilityService.
+        public Factory? FindFactory(string unitName)
+        {
+            return _units?.FirstOrDefault(unit => unit.Name == unitName)?.FactoryId is var factoryId
+                        ? _factories?.FirstOrDefault(factory => factory.Id == factoryId)
+                        : null;
+        }
+        // Оставляю реализацию т.к. указана в задании.
+        public Factory? FindFactory(Unit unit) =>
+            _factories?.FirstOrDefault(f => f.Id == unit.Id);
     }
 }

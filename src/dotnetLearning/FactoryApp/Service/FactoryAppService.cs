@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
+using dotnetLearning.FactoryApp.Model;
 
 namespace dotnetLearning.FactoryApp.Service
 {
@@ -17,50 +18,16 @@ namespace dotnetLearning.FactoryApp.Service
             view.ShowMessage(facilityService.GetTotalSummary());
             view.ShowMessage(facilityService.GetTotalVolumeTanks());
 
+            var unit = facilityService.FindUnit("Резервуар 5");
+            view.ShowMessage($"Резервуар 5 расположен на {unit?.ToString()}" ?? "Unit not found");
 
-            // Комменты ниже допилю позже, также доп.задачи к первым урокам 
-
-            //var foundUnit = FindUnit(units, tanks, "Резервуар 2");
-            //var factory = FindFactory(factories, foundUnit);
-
-            //Console.WriteLine($"Резервуар 2 принадлежит установке {foundUnit.Name} и заводу {factory.Name}");
-
-            //var totalVolume = GetTotalVolume(tanks);
-            //Console.WriteLine($"Общий объем резервуаров: {totalVolume}");
-
-            //foreach (var tank in tanks)
-            //{
-            //    Console.WriteLine($"{tank.Name}, {tank.Description}, Номер установки: {tank.UnitId}");
-            //}
-
-            //foreach (var unit in units)
-            //{
-            //    Console.WriteLine($"{unit.Name}, {unit.Description}, Номер фабрики: {unit.FactoryId}");
-            //}
-
-            //foreach (var fact in factories)
-            //{
-            //    Console.WriteLine($"{fact.Name}, {fact.Description}");
-            //}
+            var factory = facilityService.FindFactory("ГФУ-2");
+            view.ShowMessage($"Установка ГФУ-2 расположена на {factory?.ToString()}" ?? "Factory not found");
+            
+            // Вдруг пригодится.
+            //view.ShowMessage(facilityService.GetTanksSummary());
+            //view.ShowMessage(facilityService.GetFactoriesSummary());
+            //view.ShowMessage(facilityService.GetUnitsSummary());
         }
-
-        //// реализуйте этот метод, чтобы он возвращал установку (Unit), которой
-        //// принадлежит резервуар (Tank), найденный в массиве резервуаров по имени
-        //// учтите, что по заданному имени может быть не найден резервуар
-        //public static Unit? FindUnit(IEnumerable<Unit> units, IEnumerable<Tank> tanks, string tankName)
-        //{
-        //    var foundUnit = from tank in tanks
-        //                    where tank.Name == tankName
-        //                    join u in units on tank.UnitId equals u.Id
-        //                    select new Unit(u.Id, u.Name, u.Description, u.FactoryId);
-        //    return foundUnit.First();
-        //}
-
-        //// реализуйте этот метод, чтобы он возвращал объект завода, соответствующий установке
-        //public static Factory? FindFactory(IEnumerable<Factory> factories, Unit unit) => factories.FirstOrDefault(factory => factory.Id == unit.Id);
-
-        //// реализуйте этот метод, чтобы он возвращал суммарный объем резервуаров в массиве
-        //public static int GetTotalVolume(IEnumerable<Tank> tanks) => tanks.Sum(tank => tank.Volume);
-
     }
 }

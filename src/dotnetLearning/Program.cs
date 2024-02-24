@@ -18,9 +18,9 @@ internal class Program
             .Build();
 
         var services = new ServiceCollection();
-        services.Configure<FacilityServiceOptions>(config.GetSection("FilePath"));
+        services.Configure<FacilityServiceOptions>(config.GetSection(FacilityServiceOptions.SectionName));
 
-        var options = config.GetSection("FilePath").Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
+        var options = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
 
         services.AddSingleton<FactoryAppService>();
         services.AddSingleton<IView, ConsoleView>();
