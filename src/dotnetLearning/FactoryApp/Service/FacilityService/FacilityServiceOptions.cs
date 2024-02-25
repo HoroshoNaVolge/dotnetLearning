@@ -4,5 +4,6 @@
     {
         public const string SectionName = "FilePath";
         public string? FacilitiesJsonFilePath { get; set; }
+        public string? FacilitiesExcelFilePath { get; set; }
     }
 }

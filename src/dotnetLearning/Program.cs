@@ -12,19 +12,20 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-         IConfigurationRoot config = new ConfigurationBuilder()
-            //Для Visual Studio. Несколько раз вверх, т.к. current directory выдаёт /bin/debug/dotnet8.0.
-            .AddJsonFile(Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "../../../appsettings.json")))
-            .Build();
+        IConfigurationRoot config = new ConfigurationBuilder()
+           //Для Visual Studio. Несколько раз вверх, т.к. current directory выдаёт /bin/debug/dotnet8.0.
+           .AddJsonFile(Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "../../../appsettings.json")))
+           .Build();
 
         var services = new ServiceCollection();
         services.Configure<FacilityServiceOptions>(config.GetSection(FacilityServiceOptions.SectionName));
 
         var options = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
 
-        services.AddSingleton<FactoryAppService>();
-        services.AddSingleton<IView, ConsoleView>();
-        services.AddScoped<IFacilityService, FacilityService>();
+        services.AddSingleton<FactoryAppService>()
+            .AddSingleton<IView, ConsoleView>()
+            .AddSingleton<ExcelTransformator>()
+            .AddScoped<IFacilityService, FacilityService>();
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();
 

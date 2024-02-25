@@ -11,7 +11,7 @@ namespace dotnetLearning.JsonParserApp
             var result = GetNumbersOfDeals(objectsFromJson);
             Console.WriteLine("Номера 5 самых ранних сделок с суммой >100 руб по убыванию суммы: " + string.Join(", ", result));
 
-            IList<SumByMonth> periods = GetSumsByMonth(objectsFromJson);
+            IEnumerable<SumByMonth> periods = GetSumsByMonth(objectsFromJson);
 
             foreach (var period in periods)
             {
