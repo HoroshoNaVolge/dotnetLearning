@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace dotnetLearning.FactoryApp.Model
+﻿namespace dotnetLearning.FactoryApp.Model
 {
     public class Unit : IFacility
     {

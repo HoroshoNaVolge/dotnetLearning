@@ -175,17 +175,28 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
                 else container = new(factories, units, tanks);
 
-            foreach (var item in container.Factories)
-                if (item is Factory factory && factory.Name == name)
-                    return (factory.ToString(), typeof(Factory));
+            var factoryResult = (
+                from Factory factory in container.Factories
+                where factory.Name == name
+                select (factory.ToString(), typeof(Factory))).FirstOrDefault();
 
-            foreach (var item in container.Units)
-                if (item is Unit unit && unit.Name == name)
-                    return (unit.ToString(), typeof(Unit));
-            foreach (var item in container.Tanks)
-                if (item is Tank tank && tank.Name == name)
-                    return (tank.ToString(), typeof(Tank));
-            return ("Не найдено", typeof(object));
+            if (factoryResult != default)
+                return factoryResult;
+
+            var unitResult = container.Units
+                .Where(unit => unit.Name == name)
+                .Select(unit => (unit.ToString(), typeof(Unit)))
+                .FirstOrDefault();
+
+            if (unitResult != default)
+                return unitResult;
+
+            var tankResult = (
+                from Tank tank in container.Tanks
+                where tank.Name == name
+                select (tank.ToString(), typeof(Tank))).FirstOrDefault();
+
+            return tankResult != default ? tankResult : ("Не найдено", typeof(object));
         }
 
         public async Task ExportDataToExcelAsync(CancellationToken token)

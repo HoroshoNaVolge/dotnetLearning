@@ -64,7 +64,7 @@ namespace dotnetLearning.FactoryApp.Service
 
                     case "get unitsSummary":
                         view.ShowMessage(facilityService.GetUnitsSummary());
-                        break
+                        break;
 
 
                     case "find unit":
