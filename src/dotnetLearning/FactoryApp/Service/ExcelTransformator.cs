@@ -5,79 +5,126 @@ using OfficeOpenXml;
 
 namespace dotnetLearning.FactoryApp.Service
 {
-    public class ExcelTransformator(IOptions<FacilityServiceOptions> options)
+    public class ExcelTransformator
     {
-        public async Task WriteToExcelAsync(IEnumerable<Factory> factories, IEnumerable<Unit> units, IEnumerable<Tank> tanks)
+        private readonly string excelFilePath;
+        public ExcelTransformator(IOptions<FacilityServiceOptions> options)
         {
             if (string.IsNullOrEmpty(options.Value.FacilitiesExcelFilePath)) throw new ArgumentNullException("Неверно задан путь файла Excel");
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+            excelFilePath = options.Value.FacilitiesExcelFilePath;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        }
+        public async Task WriteToExcelAsync(IEnumerable<Factory> factories, IEnumerable<Unit> units, IEnumerable<Tank> tanks)
+        {
             await Task.Run(() =>
             {
                 using var package = new ExcelPackage();
-                var worksheetFactories = package.Workbook.Worksheets.Add("Factories");
-                var worksheetUnits = package.Workbook.Worksheets.Add("Units");
-                var worksheetTanks = package.Workbook.Worksheets.Add("Tanks");
 
-                worksheetFactories.Cells["A1"].Value = "Id";
-                worksheetFactories.Cells["B1"].Value = "Name";
-                worksheetFactories.Cells["C1"].Value = "Description";
-
-                worksheetUnits.Cells["A1"].Value = "Id";
-                worksheetUnits.Cells["B1"].Value = "Name";
-                worksheetUnits.Cells["C1"].Value = "Description";
-                worksheetUnits.Cells["D1"].Value = "FacyoryId";
-
-                worksheetTanks.Cells["A1"].Value = "Id";
-                worksheetTanks.Cells["B1"].Value = "Name";
-                worksheetTanks.Cells["C1"].Value = "Description";
-                worksheetTanks.Cells["D1"].Value = "UnitId";
-                worksheetTanks.Cells["E1"].Value = "Volume";
-                worksheetTanks.Cells["F1"].Value = "MaxVolume";
-
-                int row = 2;
-                foreach (var item in factories)
-                {
-                    worksheetFactories.Cells[row, 1].Value = item.Id;
-                    worksheetFactories.Cells[row, 2].Value = item.Name;
-                    worksheetFactories.Cells[row, 3].Value = item.Description;
-                    row++;
-                }
-
-                row = 2;
-                foreach (var item in units)
-                {
-                    worksheetUnits.Cells[row, 1].Value = item.Id;
-                    worksheetUnits.Cells[row, 2].Value = item.Name;
-                    worksheetUnits.Cells[row, 3].Value = item.Description;
-                    worksheetUnits.Cells[row, 4].Value = item.FactoryId;
-                    row++;
-                }
-
-                row = 2;
-                foreach (var item in tanks)
-                {
-                    worksheetTanks.Cells[row, 1].Value = item.Id;
-                    worksheetTanks.Cells[row, 2].Value = item.Name;
-                    worksheetTanks.Cells[row, 3].Value = item.Description;
-                    worksheetTanks.Cells[row, 4].Value = item.UnitId;
-                    worksheetTanks.Cells[row, 5].Value = item.Volume;
-                    worksheetTanks.Cells[row, 6].Value = item.MaxVolume;
-                    row++;
-                }
+                WriteWorksheet(factories, package.Workbook.Worksheets.Add("Factories"), GetFactoryHeaders());
+                WriteWorksheet(units, package.Workbook.Worksheets.Add("Units"), GetUnitHeaders());
+                WriteWorksheet(tanks, package.Workbook.Worksheets.Add("Tanks"), GetTankHeaders());
 
                 foreach (var sh in package.Workbook.Worksheets)
                     sh.Cells[sh.Dimension.Address].AutoFitColumns();
 
                 try
                 {
-                    package.SaveAs(new FileInfo(options.Value.FacilitiesExcelFilePath));
+                    package.SaveAs(new FileInfo(excelFilePath));
                 }
                 catch (InvalidOperationException)
                 {
-                    package.SaveAs(new FileInfo($"{options.Value.FacilitiesExcelFilePath} Reserved.xlsx"));
+                    package.SaveAs(new FileInfo($"{excelFilePath} Reserved.xlsx"));
                 }
             });
+        }
+
+        private static void WriteWorksheet<T>(IEnumerable<T> items, ExcelWorksheet worksheet, string[] headers)
+        {
+            for (int i = 0; i < headers.Length; i++)
+            {
+                worksheet.Cells[1, i + 1].Value = headers[i];
+            }
+
+            int row = 2;
+            foreach (var item in items)
+            {
+#nullable disable
+                var properties = item.GetType().GetProperties();
+#nullable restore
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[row, i + 1].Value = properties.First(p => p.Name == headers[i]).GetValue(item);
+                }
+                row++;
+            }
+        }
+
+        public async Task GetFacilitiesFromExcel()
+        {
+            await Task.Run(() =>
+            {
+                ReadFromExcel<Factory>(excelFilePath, "Factories");
+                ReadFromExcel<Unit>(excelFilePath, "Units");
+                ReadFromExcel<Tank>(excelFilePath, "Tanks");
+            });
+        }
+
+        private static List<T> ReadFromExcel<T>(string excelFilePath, string sheetName)
+        {
+            List<T> items = [];
+
+            using var package = new ExcelPackage(new FileInfo(excelFilePath));
+            var worksheet = package.Workbook.Worksheets[sheetName];
+
+            if (worksheet is null)
+                return items;
+
+            int rowCount = worksheet.Dimension.Rows;
+
+            for (int row = 2; row <= rowCount; row++)
+            {
+                T item = Activator.CreateInstance<T>();
+
+                var properties = typeof(T).GetProperties();
+                var numberOfColumns = properties.Length;
+
+                var startColumn = 1;
+                for (int col = 1; col <= numberOfColumns; col++)
+                {
+                    var cellValue = worksheet.Cells[row, startColumn + col - 1].Value;
+
+                    // читаем строки
+                    try
+                    {
+                        properties[col - 1].SetValue(item, cellValue);
+                    }
+
+                    // потому что читает число как double
+                    catch (ArgumentException)
+                    {
+                        properties[col - 1].SetValue(item, Convert.ToInt32(cellValue));
+                    }
+                }
+                items.Add(item);
+            }
+            return items;
+        }
+
+        private string[] GetFactoryHeaders()
+        {
+            return ["Id", "Name", "Description"];
+        }
+
+        private string[] GetUnitHeaders()
+        {
+            return ["Id", "Name", "Description", "FactoryId"];
+        }
+
+        private string[] GetTankHeaders()
+        {
+            return ["Id", "Name", "Description", "UnitId", "Volume", "MaxVolume"];
         }
     }
 }

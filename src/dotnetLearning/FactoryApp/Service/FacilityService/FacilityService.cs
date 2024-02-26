@@ -14,6 +14,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Task DeserializeDataJson(string filePath);
 
         public Task ExportDataToExcelAsync(CancellationToken token);
+        public Task ImportDataFromExcelAsync(CancellationToken token);
 
 
         /// <returns>Строка с количеством текущих объектов Factory, Unit,Tank</returns>
@@ -31,17 +32,17 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
     public class FacilityService : IFacilityService
     {
-        private FacilitiesContainer? _container = null;
-        private ExcelTransformator? _excelTransformator = null;
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        private FacilitiesContainer? container = null;
+        private ExcelTransformator? excelTransformator = null;
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new()
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
             WriteIndented = true,
         };
 
-        private IList<Factory>? _factories = null;
-        private IList<Unit>? _units = null;
-        private IList<Tank>? _tanks = null;
+        private IList<Factory>? factories = null;
+        private IList<Unit>? units = null;
+        private IList<Tank>? tanks = null;
 
         private readonly string _jsonFilePath;
 
@@ -53,15 +54,15 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
             _jsonFilePath = options.Value.FacilitiesJsonFilePath;
 
-            _excelTransformator = excelTransformator;
+            this.excelTransformator = excelTransformator;
         }
 
         //Для сериализации в учебных условиях. Например тестовые объекты через new в коде C#
         public async Task SerializeDataJsonAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token)
         {
-            _container = new(factories, units, tanks);
+            container = new(factories, units, tanks);
 
-            string json = JsonSerializer.Serialize(_container, _jsonSerializerOptions);
+            string json = JsonSerializer.Serialize(container, jsonSerializerOptions);
 
             using var writer = new StreamWriter(_jsonFilePath);
             await writer.WriteAsync(json);
@@ -70,11 +71,11 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         // Может понадобиться сериализовать всю текущую конфигурацию
         public async Task SerializeDataJsonAsync(CancellationToken token)
         {
-            if (_container is null || _factories is null || _tanks is null || _units is null) return;
+            if (container is null || factories is null || tanks is null || units is null) return;
 
-            _container = new(_factories, _units, _tanks);
+            container = new(factories, units, tanks);
 
-            string json = JsonSerializer.Serialize(_container, _jsonSerializerOptions);
+            string json = JsonSerializer.Serialize(container, jsonSerializerOptions);
 
             using var writer = new StreamWriter(_jsonFilePath);
             await writer.WriteAsync(json);
@@ -82,30 +83,30 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public async Task SerializeDataJsonAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null || _factories is null || _units is null || _tanks is null) return;
+            if (facility is null || factories is null || units is null || tanks is null) return;
 
             bool anyAdded = false;
             switch (facility)
             {
-                case Tank tank when !_tanks?.Any(tank => tank.Id == facility.Id) == true:
-                    _tanks?.Add(tank);
+                case Tank tank when !tanks?.Any(tank => tank.Id == facility.Id) == true:
+                    tanks?.Add(tank);
                     anyAdded = true;
                     break;
-                case Factory factory when !_factories.Any(fac => fac.Id == facility.Id) == true:
-                    _factories?.Add(factory);
+                case Factory factory when !factories.Any(fac => fac.Id == facility.Id) == true:
+                    factories?.Add(factory);
                     anyAdded = true;
                     break;
-                case Unit unit when !_units.Any(u => u.Id == facility.Id) == true:
-                    _units?.Add(unit);
+                case Unit unit when !units.Any(u => u.Id == facility.Id) == true:
+                    units?.Add(unit);
                     anyAdded = true;
                     break;
             }
 
-            if (!anyAdded || _factories is null || _tanks is null || _units is null) return;
+            if (!anyAdded || factories is null || tanks is null || units is null) return;
 
-            _container = new(_factories, _units, _tanks);
+            container = new(factories, units, tanks);
 
-            string json = JsonSerializer.Serialize(_container, _jsonSerializerOptions);
+            string json = JsonSerializer.Serialize(container, jsonSerializerOptions);
 
             using var writer = new StreamWriter(_jsonFilePath);
 
@@ -118,27 +119,27 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
             var deserializedContainer = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
 
-            _factories = deserializedContainer.Factories;
-            _units = deserializedContainer.Units;
-            _tanks = deserializedContainer.Tanks;
+            factories = deserializedContainer.Factories;
+            units = deserializedContainer.Units;
+            tanks = deserializedContainer.Tanks;
         }
         #endregion
 
         #region GetInfoAsString
-        public string? GetFactoriesSummary() => _factories != null ? string.Join(Environment.NewLine, _factories) : null;
+        public string? GetFactoriesSummary() => factories != null ? string.Join(Environment.NewLine, factories) : null;
 
-        public string? GetUnitsSummary() => _units != null ? string.Join(Environment.NewLine, _units) : null;
+        public string? GetUnitsSummary() => units != null ? string.Join(Environment.NewLine, units) : null;
 
-        public string? GetTanksSummary() => _tanks != null ? string.Join(Environment.NewLine, _tanks) : null;
+        public string? GetTanksSummary() => tanks != null ? string.Join(Environment.NewLine, tanks) : null;
 
-        public string? GetCurrentConfiguration() { return $"Количество резервуаров: {_tanks?.Count()}, установок: {_units?.Count()}"; }
+        public string? GetCurrentConfiguration() { return $"Количество резервуаров: {tanks?.Count()}, установок: {units?.Count()}"; }
 
         public string? GetTotalSummary()
         {
-            if (_factories is null || _units is null || _tanks is null) return null;
+            if (factories is null || units is null || tanks is null) return null;
 
             // Наверное не стоит кастить к обджекту, просто хотел сделал лакончино.
-            var items = _factories.Cast<object>().Concat(_units).Concat(_tanks);
+            var items = factories.Cast<object>().Concat(units).Concat(tanks);
 
             return $"По состоянию на {DateTime.Now} в работе:" + Environment.NewLine +
                      string.Join(Environment.NewLine, items.Select(item => item.ToString()));
@@ -146,31 +147,37 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public string? GetTotalVolumeTanks()
         {
-            if (_tanks != null)
-                return $"Общая заполненность резервуаров, мт: {_tanks?.Sum(tank => tank.Volume)}";
+            if (tanks != null)
+                return $"Общая заполненность резервуаров, мт: {tanks?.Sum(tank => tank.Volume)}";
             return null;
         }
         #endregion
 
         public Unit? FindUnit(string tankName) =>
-            _units?.FirstOrDefault(u => _tanks?.Any(t => t.Name == tankName && t.UnitId == u.Id) ?? false);
+            units?.FirstOrDefault(u => tanks?.Any(t => t.Name == tankName && t.UnitId == u.Id) ?? false);
 
         // Считаю нужным перегрузить на приём строки параметром, т.к. работа с моделью не происходит вне класса FacilityService.
         public Factory? FindFactory(string unitName)
         {
-            return _units?.FirstOrDefault(unit => unit.Name == unitName)?.FactoryId is var factoryId
-                        ? _factories?.FirstOrDefault(factory => factory.Id == factoryId)
+            return units?.FirstOrDefault(unit => unit.Name == unitName)?.FactoryId is var factoryId
+                        ? factories?.FirstOrDefault(factory => factory.Id == factoryId)
                         : null;
         }
         // Оставляю реализацию т.к. указана в задании.
         public Factory? FindFactory(Unit unit) =>
-            _factories?.FirstOrDefault(f => f.Id == unit.Id);
+            factories?.FirstOrDefault(f => f.Id == unit.Id);
 
         public async Task ExportDataToExcelAsync(CancellationToken token)
         {
-            if (_excelTransformator is null || _factories is null || _units is null || _tanks is null) return;
+            if (excelTransformator is null || factories is null || units is null || tanks is null) return;
 
-            await _excelTransformator.WriteToExcelAsync(_factories, _units, _tanks);
+            await excelTransformator.WriteToExcelAsync(factories, units, tanks);
+        }
+
+        public async Task ImportDataFromExcelAsync(CancellationToken token)
+        {
+            if (excelTransformator != null)
+                await excelTransformator.GetFacilitiesFromExcel();
         }
     }
 }
