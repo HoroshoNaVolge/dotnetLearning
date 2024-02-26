@@ -2,12 +2,12 @@ namespace dotnetLearning.FactoryApp.View
 {
     public class ConsoleView : IView
     {
-        public event EventHandler<UserInputEventArgs> InputReceived;
+        public event EventHandler<UserInputEventArgs>? InputReceived;
         public string? GetUserInput(string prompt)
         {
             Console.WriteLine(prompt);
 
-            string userInput = Console.ReadLine();
+            string? userInput = Console.ReadLine();
 
             var userInputEventArgs = new UserInputEventArgs
             {
@@ -15,7 +15,6 @@ namespace dotnetLearning.FactoryApp.View
                 InputTime = DateTime.Now
             };
 
-            // Вызываем событие и передаем информацию о вводе
             OnUserInputReceived(userInputEventArgs);
 
             return userInput;
@@ -28,5 +27,4 @@ namespace dotnetLearning.FactoryApp.View
 
         public void ShowMessage(string? message) => Console.WriteLine(message);
     }
-
 }
