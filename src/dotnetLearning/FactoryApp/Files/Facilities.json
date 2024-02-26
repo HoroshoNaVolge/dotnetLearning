@@ -79,14 +79,6 @@
       "UnitId": 3,
       "Volume": 500,
       "MaxVolume": 500
-    },
-    {
-      "Id": 6676,
-      "Name": "Onotole",
-      "Description": "Ololoev",
-      "UnitId": 2,
-      "Volume": 0,
-      "MaxVolume": 100500
     }
   ]
 }

@@ -18,13 +18,18 @@ namespace dotnetLearning.FactoryApp.Service
             await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
 
             var userInteractionFinished = false;
-
+#nullable disable
+            view.InputReceived += HandleUserInput;
+#nullable restore
             while (!userInteractionFinished)
             {
                 var userInput = view.GetUserInput(
                     "get conf - показать текущую конфигурацию системы\n" +
                     "get total - показать полную сводку\n" +
                     "get tanksVolumeTotal - показать общую вместимость резервуаров\n" +
+                    "get tanksSummary - показать сводку по резервуарам\n" +
+                    "get factoriesSummary - показать сводку по установкам\n" +
+                    "get unitsSummary - показать сводку по заводам\n" +
                     "find unit - найти резервуар по названию\n" +
                     "find factory - найти установку по названию\n" +
                     "search - поиск по названию\n" +
@@ -48,6 +53,19 @@ namespace dotnetLearning.FactoryApp.Service
                     case "get tanksVolumeTotal":
                         view.ShowMessage(facilityService.GetTotalVolumeTanks());
                         break;
+
+                    case "get tanksSummary":
+                        view.ShowMessage(facilityService.GetTanksSummary());
+                        break;
+
+                    case "get factoriesSummary":
+                        view.ShowMessage(facilityService.GetFactoriesSummary());
+                        break;
+
+                    case "get unitsSummary":
+                        view.ShowMessage(facilityService.GetUnitsSummary());
+                        break
+
 
                     case "find unit":
                         var tankName = view.GetUserInput("Введите название резервуара:");
@@ -117,17 +135,13 @@ namespace dotnetLearning.FactoryApp.Service
                         view.ShowMessage("Неизвестная команда");
                         break;
                 }
-
             }
-          
-            //await facilityService.SerializeDataJsonAsync(new Tank() { Id = 6676, Description = "Ololoev", Name = "Onotole", MaxVolume = 100500, Volume = 0, UnitId = 2 }, cancellationToken);
 
-            // Вдруг пригодится.
-            //view.ShowMessage(facilityService.GetTanksSummary());
-            //view.ShowMessage(facilityService.GetFactoriesSummary());
-            //view.ShowMessage(facilityService.GetUnitsSummary());
+            //await facilityService.SerializeDataJsonAsync(new Tank() { Id = 6676, Description = "Ololoev", Name = "Onotole", MaxVolume = 100500, Volume = 0, UnitId = 2 }, cancellationToken);
         }
         private string? FindUnit(string tankName) => facilityService.FindUnit(tankName)?.ToString();
         private string? FindFactory(string unitName) => facilityService.FindFactory(unitName)?.ToString();
+
+        private void HandleUserInput(object sender, UserInputEventArgs e) => view.ShowMessage($"Пользователь ввел: {e.UserInput} в {e.InputTime}");
     }
 }
