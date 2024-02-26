@@ -28,6 +28,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Unit? FindUnit(string tankName);
         public Factory? FindFactory(Unit unit);
         public Factory? FindFactory(string unitName);
+        public (string result, Type type) Search(string name);
     }
 
     public class FacilityService : IFacilityService
@@ -166,6 +167,26 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         // Оставляю реализацию т.к. указана в задании.
         public Factory? FindFactory(Unit unit) =>
             factories?.FirstOrDefault(f => f.Id == unit.Id);
+
+        public (string result, Type type) Search(string name)
+        {
+            if (container is null)
+                if (factories is null || units is null || tanks is null) return ("Не найдено", typeof(object));
+
+                else container = new(factories, units, tanks);
+
+            foreach (var item in container.Factories)
+                if (item is Factory factory && factory.Name == name)
+                    return (factory.ToString(), typeof(Factory));
+
+            foreach (var item in container.Units)
+                if (item is Unit unit && unit.Name == name)
+                    return (unit.ToString(), typeof(Unit));
+            foreach (var item in container.Tanks)
+                if (item is Tank tank && tank.Name == name)
+                    return (tank.ToString(), typeof(Tank));
+            return ("Не найдено", typeof(object));
+        }
 
         public async Task ExportDataToExcelAsync(CancellationToken token)
         {

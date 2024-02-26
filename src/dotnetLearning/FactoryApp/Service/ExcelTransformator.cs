@@ -71,9 +71,9 @@ namespace dotnetLearning.FactoryApp.Service
             });
         }
 
-        private static List<T> ReadFromExcel<T>(string excelFilePath, string sheetName)
+        private static IList<T> ReadFromExcel<T>(string excelFilePath, string sheetName)
         {
-            List<T> items = [];
+            IList<T> items = [];
 
             using var package = new ExcelPackage(new FileInfo(excelFilePath));
             var worksheet = package.Workbook.Worksheets[sheetName];

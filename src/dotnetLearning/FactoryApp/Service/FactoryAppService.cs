@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
-using dotnetLearning.FactoryApp.Model;
 
 namespace dotnetLearning.FactoryApp.Service
 {
@@ -12,31 +11,123 @@ namespace dotnetLearning.FactoryApp.Service
             if (string.IsNullOrEmpty(options.Value.FacilitiesJsonFilePath))
                 throw new ArgumentNullException("Ошибка в файле конфигурации appsettings.json");
 
-            await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
-
-            // view.ShowMessage(facilityService.GetCurrentConfiguration());
-            //view.ShowMessage(facilityService.GetTotalSummary());
-            //view.ShowMessage(facilityService.GetTotalVolumeTanks());
-
-            //var unit = facilityService.FindUnit("Резервуар 5");
-            //view.ShowMessage($"Резервуар 5 расположен на {unit?.ToString()}" ?? "Unit not found");
-
-            //var factory = facilityService.FindFactory("ГФУ-2");
-            //view.ShowMessage($"Установка ГФУ-2 расположена на {factory?.ToString()}" ?? "Factory not found");
-
             CancellationTokenSource cancellationTokenSource = new();
             CancellationToken cancellationToken = cancellationTokenSource.Token;
 
-            // await facilityService.SerializeDataJsonAsync(cancellationToken);
-            //await facilityService.SerializeDataJsonAsync(new Tank() { Id = 6676, Description = "Ololoev", Name = "Onotole", MaxVolume = 100500, Volume = 0, UnitId = 2 }, cancellationToken);
+            // по умолчанию нужны коллекции готовых объектов
+            await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
 
-            await facilityService.ExportDataToExcelAsync(cancellationToken);
-            await facilityService.ImportDataFromExcelAsync(cancellationToken);
+            var userInteractionFinished = false;
+
+            while (!userInteractionFinished)
+            {
+                var userInput = view.GetUserInput(
+                    "get conf - показать текущую конфигурацию системы\n" +
+                    "get total - показать полную сводку\n" +
+                    "get tanksVolumeTotal - показать общую вместимость резервуаров\n" +
+                    "find unit - найти резервуар по названию\n" +
+                    "find factory - найти установку по названию\n" +
+                    "search - поиск по названию\n" +
+                    "write json - сериализовать все объекты в json\n" +
+                    "read json - десериализовать все объекты из json\n" +
+                    "write excel - экспортировать все объекты в Excel\n" +
+                    "read excel - импортировать все объекты из Excel\n" +
+                    "exit - выход из программы\n" +
+                    "Введите команду:");
+
+                switch (userInput)
+                {
+                    case "get conf":
+                        view.ShowMessage(facilityService.GetCurrentConfiguration());
+                        break;
+
+                    case "get total":
+                        view.ShowMessage(facilityService.GetTotalSummary());
+                        break;
+
+                    case "get tanksVolumeTotal":
+                        view.ShowMessage(facilityService.GetTotalVolumeTanks());
+                        break;
+
+                    case "find unit":
+                        var tankName = view.GetUserInput("Введите название резервуара:");
+                        if (string.IsNullOrEmpty(tankName))
+                        {
+                            view.ShowMessage($"Ошибка ввода");
+                            return;
+                        }
+
+                        var foundUnit = FindUnit(tankName);
+                        if (string.IsNullOrEmpty(foundUnit))
+                            view.ShowMessage($"Резервуар {tankName} не найден");
+                        else
+                            view.ShowMessage($"Найдена установка: {foundUnit}");
+                        break;
+
+                    case "find factory":
+                        var unitName = view.GetUserInput("Введите название установки:");
+
+                        if (string.IsNullOrEmpty(unitName))
+                        {
+                            view.ShowMessage($"Ошибка ввода");
+                            return;
+                        }
+
+                        var foundFactory = FindFactory(unitName);
+                        if (string.IsNullOrEmpty(foundFactory))
+                            view.ShowMessage($"Установка {unitName} не найдена");
+                        else
+                            view.ShowMessage($"Найден завод: {foundFactory}");
+
+                        break;
+
+                    case "search":
+                        var searchName = view.GetUserInput("Введите название для поиска:");
+                        if (string.IsNullOrEmpty(searchName))
+                        {
+                            view.ShowMessage($"Ошибка ввода");
+                            return;
+                        }
+
+                        var result = facilityService.Search(searchName);
+                        view.ShowMessage($"Результат поиска: {result.result} ({result.type.Name})");
+                        break;
+
+                    case "write json":
+                        await facilityService.SerializeDataJsonAsync(cancellationToken);
+                        break;
+
+                    case "read json":
+                        await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
+                        break;
+
+                    case "write excel":
+                        await facilityService.ExportDataToExcelAsync(cancellationToken);
+                        break;
+
+                    case "read excel":
+                        await facilityService.ImportDataFromExcelAsync(cancellationToken);
+                        break;
+
+                    case "exit":
+                        userInteractionFinished = true;
+                        break;
+
+                    default:
+                        view.ShowMessage("Неизвестная команда");
+                        break;
+                }
+
+            }
+          
+            //await facilityService.SerializeDataJsonAsync(new Tank() { Id = 6676, Description = "Ololoev", Name = "Onotole", MaxVolume = 100500, Volume = 0, UnitId = 2 }, cancellationToken);
 
             // Вдруг пригодится.
             //view.ShowMessage(facilityService.GetTanksSummary());
             //view.ShowMessage(facilityService.GetFactoriesSummary());
             //view.ShowMessage(facilityService.GetUnitsSummary());
         }
+        private string? FindUnit(string tankName) => facilityService.FindUnit(tankName)?.ToString();
+        private string? FindFactory(string unitName) => facilityService.FindFactory(unitName)?.ToString();
     }
 }
