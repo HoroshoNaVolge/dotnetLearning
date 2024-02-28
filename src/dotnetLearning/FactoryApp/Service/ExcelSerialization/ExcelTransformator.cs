@@ -15,15 +15,19 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
             excelFilePath = options.Value.FacilitiesExcelFilePath;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
-        public async Task WriteToExcelAsync(IEnumerable<Factory> factories, IEnumerable<Unit> units, IEnumerable<Tank> tanks)
+        public async Task WriteToExcelAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks)
         {
+            var factoryValues = factories.Select(EntityExcelSerializationHelper.GetValues).ToList();
+            var unitValues = units.Select(EntityExcelSerializationHelper.GetValues).ToList();
+            var tankValues = tanks.Select(EntityExcelSerializationHelper.GetValues).ToList();
+
             await Task.Run(() =>
             {
                 using var package = new ExcelPackage();
 
-                WriteWorksheet(factories, package.Workbook.Worksheets.Add("Factories"), GetFactoryHeaders());
-                WriteWorksheet(units, package.Workbook.Worksheets.Add("Units"), GetUnitHeaders());
-                WriteWorksheet(tanks, package.Workbook.Worksheets.Add("Tanks"), GetTankHeaders());
+                WriteWorksheet(factoryValues, EntityExcelSerializationHelper.GetFactoryKeys(), package.Workbook.Worksheets.Add("Factories"));
+                WriteWorksheet(unitValues, EntityExcelSerializationHelper.GetUnitKeys(), package.Workbook.Worksheets.Add("Units"));
+                WriteWorksheet(tankValues, EntityExcelSerializationHelper.GetTankKeys(), package.Workbook.Worksheets.Add("Tanks"));
 
                 foreach (var sh in package.Workbook.Worksheets)
                     sh.Cells[sh.Dimension.Address].AutoFitColumns();
@@ -41,31 +45,17 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
             });
         }
 
-        private static void WriteWorksheet<T>(IEnumerable<T> items, ExcelWorksheet worksheet, string[] headers, Dictionary<string, Func<T, object>> properiesSelectors)
+        private static void WriteWorksheet(IList<IDictionary<string, object?>> values, IList<string> keys, ExcelWorksheet worksheet)
         {
-            for (int i = 0; i < headers.Length; i++)
-            {
-                worksheet.Cells[1, i + 1].Value = headers[i];
-            }
+            for (int i = 0; i < keys.Count; i++)
+                worksheet.Cells[1, i + 1].Value = keys[i];
 
             int row = 2;
-            foreach (var item in items)
+            foreach (var value in values)
             {
-
-                for (int i = 0; i < headers.Length; i++)
-                {
-                    worksheet.Cells[row, i + 1].Value 
-                }
-
-                //#nullable disable
-                //                var properties = item.GetType().GetProperties();
-                //#nullable restore
-
-                //                for (int i = 0; i < headers.Length; i++)
-                //                {
-                //                    worksheet.Cells[row, i + 1].Value = properties.First(p => p.Name == headers[i]).GetValue(item);
-                //                }
-                //                row++;
+                for (int i = 0; i < value.Count; i++)
+                    worksheet.Cells[row, i + 1].Value = value[keys[i]];
+                row++;
             }
         }
 
@@ -116,21 +106,6 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
                 items.Add(item);
             }
             return items;
-        }
-
-        private string[] GetFactoryHeaders()
-        {
-            return ["Id", "Name", "Description"];
-        }
-
-        private string[] GetUnitHeaders()
-        {
-            return ["Id", "Name", "Description", "FactoryId"];
-        }
-
-        private string[] GetTankHeaders()
-        {
-            return ["Id", "Name", "Description", "UnitId", "Volume", "MaxVolume"];
         }
     }
 }
