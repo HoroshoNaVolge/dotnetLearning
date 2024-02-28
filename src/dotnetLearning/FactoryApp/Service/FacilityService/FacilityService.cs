@@ -1,5 +1,7 @@
 ﻿using dotnetLearning.FactoryApp.Model;
+using dotnetLearning.FactoryApp.Service.ExcelSerialization;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
@@ -47,7 +49,6 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         private readonly string _jsonFilePath;
 
-        #region Serialization
         public FacilityService(IOptions<FacilityServiceOptions> options, ExcelTransformator excelTransformator)
         {
             if (string.IsNullOrEmpty(options.Value.FacilitiesJsonFilePath))
@@ -58,6 +59,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             this.excelTransformator = excelTransformator;
         }
 
+        #region Serialization
         //Для сериализации в учебных условиях. Например тестовые объекты через new в коде C#
         public async Task SerializeDataJsonAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token)
         {
@@ -208,8 +210,17 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public async Task ImportDataFromExcelAsync(CancellationToken token)
         {
-            if (excelTransformator != null)
-                await excelTransformator.GetFacilitiesFromExcel();
+            if (excelTransformator is null) return;
+
+            if (container is null)
+#nullable disable
+                container = new(factories, units, tanks);
+#nullable restore
+            await excelTransformator.GetFacilitiesFromExcel(container);
+
+            factories = container.Factories;
+            units = container.Units;
+            tanks = container.Tanks;
         }
     }
 }

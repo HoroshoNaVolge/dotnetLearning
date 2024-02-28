@@ -12,7 +12,7 @@ namespace dotnetLearning.FactoryApp.View
             var userInputEventArgs = new UserInputEventArgs
             {
                 UserInput = userInput,
-                InputTime = DateTime.Now
+                InputTime = DateTime.UtcNow
             };
 
             OnUserInputReceived(userInputEventArgs);

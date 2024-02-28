@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace dotnetLearning.FactoryApp.Service.FacilityService
 {
-    internal class FacilitiesContainer(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks)
+    public class FacilitiesContainer(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks)
     {
         [JsonPropertyName("Factory")]
         public IList<Factory> Factories { get; set; } = factories;

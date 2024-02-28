@@ -14,17 +14,15 @@ namespace dotnetLearning.FactoryApp.Service
             CancellationTokenSource cancellationTokenSource = new();
             CancellationToken cancellationToken = cancellationTokenSource.Token;
 
-            // по умолчанию нужны коллекции готовых объектов
-            await facilityService.DeserializeDataJson(options.Value.FacilitiesJsonFilePath);
-
             var userInteractionFinished = false;
 #nullable disable
             view.InputReceived += HandleUserInput;
 #nullable restore
+
             while (!userInteractionFinished)
             {
                 var userInput = view.GetUserInput(
-                    "get conf - показать текущую конфигурацию системы\n" +
+                    "\nget conf - показать текущую конфигурацию системы\n" +
                     "get total - показать полную сводку\n" +
                     "get tanksVolumeTotal - показать общую вместимость резервуаров\n" +
                     "get tanksSummary - показать сводку по резервуарам\n" +
@@ -136,7 +134,9 @@ namespace dotnetLearning.FactoryApp.Service
                         break;
                 }
             }
-
+#nullable disable
+            view.InputReceived -= HandleUserInput;
+#nullable restore
             //await facilityService.SerializeDataJsonAsync(new Tank() { Id = 6676, Description = "Ololoev", Name = "Onotole", MaxVolume = 100500, Volume = 0, UnitId = 2 }, cancellationToken);
         }
         private string? FindUnit(string tankName) => facilityService.FindUnit(tankName)?.ToString();

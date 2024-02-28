@@ -3,7 +3,7 @@ using dotnetLearning.FactoryApp.Service.FacilityService;
 using Microsoft.Extensions.Options;
 using OfficeOpenXml;
 
-namespace dotnetLearning.FactoryApp.Service
+namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
 {
     public class ExcelTransformator
     {
@@ -32,6 +32,8 @@ namespace dotnetLearning.FactoryApp.Service
                 {
                     package.SaveAs(new FileInfo(excelFilePath));
                 }
+                // Если файл уже открыт в excel например, то сохраняем с другим именем.
+                // Проверить без исключения не понимаю как, даже через поток FileStream нужно ловить будет.
                 catch (InvalidOperationException)
                 {
                     package.SaveAs(new FileInfo($"{excelFilePath} Reserved.xlsx"));
@@ -39,7 +41,7 @@ namespace dotnetLearning.FactoryApp.Service
             });
         }
 
-        private static void WriteWorksheet<T>(IEnumerable<T> items, ExcelWorksheet worksheet, string[] headers)
+        private static void WriteWorksheet<T>(IEnumerable<T> items, ExcelWorksheet worksheet, string[] headers, Dictionary<string, Func<T, object>> properiesSelectors)
         {
             for (int i = 0; i < headers.Length; i++)
             {
@@ -49,26 +51,34 @@ namespace dotnetLearning.FactoryApp.Service
             int row = 2;
             foreach (var item in items)
             {
-#nullable disable
-                var properties = item.GetType().GetProperties();
-#nullable restore
 
                 for (int i = 0; i < headers.Length; i++)
                 {
-                    worksheet.Cells[row, i + 1].Value = properties.First(p => p.Name == headers[i]).GetValue(item);
+                    worksheet.Cells[row, i + 1].Value 
                 }
-                row++;
+
+                //#nullable disable
+                //                var properties = item.GetType().GetProperties();
+                //#nullable restore
+
+                //                for (int i = 0; i < headers.Length; i++)
+                //                {
+                //                    worksheet.Cells[row, i + 1].Value = properties.First(p => p.Name == headers[i]).GetValue(item);
+                //                }
+                //                row++;
             }
         }
 
-        public async Task GetFacilitiesFromExcel()
+        public async Task<FacilitiesContainer> GetFacilitiesFromExcel(FacilitiesContainer container)
         {
             await Task.Run(() =>
             {
-                ReadFromExcel<Factory>(excelFilePath, "Factories");
-                ReadFromExcel<Unit>(excelFilePath, "Units");
-                ReadFromExcel<Tank>(excelFilePath, "Tanks");
+                container.Factories = ReadFromExcel<Factory>(excelFilePath, "Factories");
+                container.Units = ReadFromExcel<Unit>(excelFilePath, "Units");
+                container.Tanks = ReadFromExcel<Tank>(excelFilePath, "Tanks");
             });
+
+            return container;
         }
 
         private static IList<T> ReadFromExcel<T>(string excelFilePath, string sheetName)
@@ -95,17 +105,13 @@ namespace dotnetLearning.FactoryApp.Service
                 {
                     var cellValue = worksheet.Cells[row, startColumn + col - 1].Value;
 
-                    // читаем строки
-                    try
-                    {
-                        properties[col - 1].SetValue(item, cellValue);
-                    }
+                    if (cellValue is null)
+                        continue;
 
-                    // потому что читает число как double
-                    catch (ArgumentException)
-                    {
-                        properties[col - 1].SetValue(item, Convert.ToInt32(cellValue));
-                    }
+                    if (cellValue is double)
+                        cellValue = Convert.ToInt32(cellValue);
+
+                    properties[col - 1].SetValue(item, cellValue);
                 }
                 items.Add(item);
             }
