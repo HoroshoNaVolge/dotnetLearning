@@ -1,3 +1,5 @@
+using dotnetLearning.FactoryApp.Model;
+
 namespace dotnetLearning.FactoryApp.View
 {
     public class ConsoleView : IView

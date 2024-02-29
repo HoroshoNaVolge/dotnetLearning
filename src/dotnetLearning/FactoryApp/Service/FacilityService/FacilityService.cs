@@ -10,14 +10,16 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 {
     public interface IFacilityService
     {
-        public Task SerializeDataJsonAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token);
-        public Task SerializeDataJsonAsync(IFacility facility, CancellationToken token);
-        public Task SerializeDataJsonAsync(CancellationToken token);
-        public Task DeserializeDataJson(string filePath);
+        public Task CreateJsonDataAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token);
+        public Task AddDataToJsonAsync(IFacility facility, CancellationToken token);
+        public Task CreateOrUpdateJsonDataAsync(CancellationToken token);
+        public Task GetAllJsonDataAsync(string filePath);
+        public Task DeleteDataFromJsonAsync(IFacility facility, CancellationToken token);
 
-        public Task ExportDataToExcelAsync(CancellationToken token);
-        public Task ImportDataFromExcelAsync(CancellationToken token);
-
+        public Task CreateOrUpdateDataExcelAsync(CancellationToken token);
+        public Task GetDataFromExcelAsync(CancellationToken token);
+        public Task AddDataToExcelAsync(IFacility facility, CancellationToken token);
+        public Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token);
 
         /// <returns>Строка с количеством текущих объектов Factory, Unit,Tank</returns>
         public string? GetCurrentConfiguration();
@@ -30,7 +32,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Unit? FindUnit(string tankName);
         public Factory? FindFactory(Unit unit);
         public Factory? FindFactory(string unitName);
-        public (string result, Type type) Search(string name);
+        public IFacility? Search(string name);
     }
 
     public class FacilityService : IFacilityService
@@ -59,9 +61,9 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             this.excelTransformator = excelTransformator;
         }
 
-        #region Serialization
+        #region JsonSerialization
         //Для сериализации в учебных условиях. Например тестовые объекты через new в коде C#
-        public async Task SerializeDataJsonAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token)
+        public async Task CreateJsonDataAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token)
         {
             container = new(factories, units, tanks);
 
@@ -72,7 +74,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         }
 
         // Может понадобиться сериализовать всю текущую конфигурацию
-        public async Task SerializeDataJsonAsync(CancellationToken token)
+        public async Task CreateOrUpdateJsonDataAsync(CancellationToken token)
         {
             if (container is null || factories is null || tanks is null || units is null) return;
 
@@ -84,9 +86,12 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             await writer.WriteAsync(json);
         }
 
-        public async Task SerializeDataJsonAsync(IFacility facility, CancellationToken token)
+        public async Task AddDataToJsonAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null || factories is null || units is null || tanks is null) return;
+            if (facility is null) return;
+
+            if (tanks is null || factories is null || units is null)
+                await GetAllJsonDataAsync(_jsonFilePath);
 
             bool anyAdded = false;
             switch (facility)
@@ -95,17 +100,17 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
                     tanks?.Add(tank);
                     anyAdded = true;
                     break;
-                case Factory factory when !factories.Any(fac => fac.Id == facility.Id) == true:
+                case Factory factory when !factories?.Any(fac => fac.Id == facility.Id) == true:
                     factories?.Add(factory);
                     anyAdded = true;
                     break;
-                case Unit unit when !units.Any(u => u.Id == facility.Id) == true:
+                case Unit unit when !units?.Any(u => u.Id == facility.Id) == true:
                     units?.Add(unit);
                     anyAdded = true;
                     break;
             }
 
-            if (!anyAdded || factories is null || tanks is null || units is null) return;
+            if (!anyAdded || factories is null || units is null || tanks is null) return;
 
             container = new(factories, units, tanks);
 
@@ -116,7 +121,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             await writer.WriteAsync(json);
         }
 
-        public async Task DeserializeDataJson(string filePath)
+        public async Task GetAllJsonDataAsync(string filePath)
         {
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
 
@@ -126,7 +131,91 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             units = deserializedContainer.Units;
             tanks = deserializedContainer.Tanks;
         }
+
+        public async Task DeleteDataFromJsonAsync(IFacility facility, CancellationToken token)
+        {
+            if (facility.GetType() == typeof(Factory))
+                factories?.Remove((Factory)facility);
+
+            if (facility.GetType() == typeof(Unit))
+                units?.Remove((Unit)facility);
+
+            if (facility.GetType() == typeof(Tank))
+                tanks?.Remove((Tank)facility);
+
+            if (factories is null || units is null || tanks is null) return;
+            await CreateJsonDataAsync(factories, units, tanks, token);
+        }
         #endregion
+
+        #region ExcelSerialization
+        public async Task CreateOrUpdateDataExcelAsync(CancellationToken token)
+        {
+            if (excelTransformator is null || factories is null || units is null || tanks is null) return;
+
+            await excelTransformator.WriteToExcelAsync(factories, units, tanks);
+        }
+        #endregion
+        public async Task GetDataFromExcelAsync(CancellationToken token)
+        {
+            if (excelTransformator is null) return;
+
+            if (container is null)
+#nullable disable
+                container = new(factories, units, tanks);
+#nullable restore
+            await excelTransformator.GetFacilitiesFromExcel(container);
+
+            factories = container.Factories;
+            units = container.Units;
+            tanks = container.Tanks;
+        }
+
+        public async Task AddDataToExcelAsync(IFacility facility, CancellationToken token)
+        {
+            if (facility is null) return;
+
+            if (tanks is null || factories is null || units is null)
+                await GetAllJsonDataAsync(_jsonFilePath);
+
+            bool anyAdded = false;
+            switch (facility)
+            {
+                case Tank tank when !tanks?.Any(tank => tank.Id == facility.Id) == true:
+                    tanks?.Add(tank);
+                    anyAdded = true;
+                    break;
+                case Factory factory when !factories?.Any(fac => fac.Id == facility.Id) == true:
+                    factories?.Add(factory);
+                    anyAdded = true;
+                    break;
+                case Unit unit when !units?.Any(u => u.Id == facility.Id) == true:
+                    units?.Add(unit);
+                    anyAdded = true;
+                    break;
+            }
+
+            if (!anyAdded || factories is null || units is null || tanks is null) return;
+
+            container = new(factories, units, tanks);
+
+            await excelTransformator.WriteToExcelAsync(factories, units, tanks);
+        }
+
+        public async Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token)
+        {
+            if (facility.GetType() == typeof(Factory))
+                factories?.Remove((Factory)facility);
+
+            if (facility.GetType() == typeof(Unit))
+                units?.Remove((Unit)facility);
+
+            if (facility.GetType() == typeof(Tank))
+                tanks?.Remove((Tank)facility);
+
+            if (factories is null || units is null || tanks is null) return;
+            await CreateOrUpdateDataExcelAsync(token);
+        }
 
         #region GetInfoAsString
         public string? GetFactoriesSummary() => factories != null ? string.Join(Environment.NewLine, factories) : null;
@@ -135,7 +224,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public string? GetTanksSummary() => tanks != null ? string.Join(Environment.NewLine, tanks) : null;
 
-        public string? GetCurrentConfiguration() { return $"Количество резервуаров: {tanks?.Count()}, установок: {units?.Count()}"; }
+        public string? GetCurrentConfiguration() { return $"Количество резервуаров: {tanks?.Count ?? 0}, установок: {units?.Count ?? 0}"; }
 
         public string? GetTotalSummary()
         {
@@ -170,57 +259,29 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Factory? FindFactory(Unit unit) =>
             factories?.FirstOrDefault(f => f.Id == unit.Id);
 
-        public (string result, Type type) Search(string name)
+        public IFacility? Search(string searchName)
         {
             if (container is null)
-                if (factories is null || units is null || tanks is null) return ("Не найдено", typeof(object));
-
+                if (factories is null || units is null || tanks is null) return null;
                 else container = new(factories, units, tanks);
 
-            var factoryResult = (
-                from Factory factory in container.Factories
-                where factory.Name == name
-                select (factory.ToString(), typeof(Factory))).FirstOrDefault();
+            var factoryResult = container.Factories
+                .FirstOrDefault(Factory => Factory.Name == searchName);
 
             if (factoryResult != default)
                 return factoryResult;
 
             var unitResult = container.Units
-                .Where(unit => unit.Name == name)
-                .Select(unit => (unit.ToString(), typeof(Unit)))
-                .FirstOrDefault();
+                .FirstOrDefault(Unit => Unit.Name == searchName);
 
             if (unitResult != default)
                 return unitResult;
 
-            var tankResult = (
-                from Tank tank in container.Tanks
-                where tank.Name == name
-                select (tank.ToString(), typeof(Tank))).FirstOrDefault();
-
-            return tankResult != default ? tankResult : ("Не найдено", typeof(object));
+            var tankResult = container.Tanks.
+                FirstOrDefault(Tank => Tank.Name == searchName);
+            return tankResult != default ? tankResult : null;
         }
 
-        public async Task ExportDataToExcelAsync(CancellationToken token)
-        {
-            if (excelTransformator is null || factories is null || units is null || tanks is null) return;
 
-            await excelTransformator.WriteToExcelAsync(factories, units, tanks);
-        }
-
-        public async Task ImportDataFromExcelAsync(CancellationToken token)
-        {
-            if (excelTransformator is null) return;
-
-            if (container is null)
-#nullable disable
-                container = new(factories, units, tanks);
-#nullable restore
-            await excelTransformator.GetFacilitiesFromExcel(container);
-
-            factories = container.Factories;
-            units = container.Units;
-            tanks = container.Tanks;
-        }
     }
 }

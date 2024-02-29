@@ -17,17 +17,17 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
         }
         public async Task WriteToExcelAsync(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks)
         {
-            var factoryValues = factories.Select(EntityExcelSerializationHelper.GetValues).ToList();
-            var unitValues = units.Select(EntityExcelSerializationHelper.GetValues).ToList();
-            var tankValues = tanks.Select(EntityExcelSerializationHelper.GetValues).ToList();
+            var factoryValues = factories.Select(Factory.GetValues).ToList();
+            var unitValues = units.Select(Unit.GetValues).ToList();
+            var tankValues = tanks.Select(Tank.GetValues).ToList();
 
             await Task.Run(() =>
             {
                 using var package = new ExcelPackage();
 
-                WriteWorksheet(factoryValues, EntityExcelSerializationHelper.GetFactoryKeys(), package.Workbook.Worksheets.Add("Factories"));
-                WriteWorksheet(unitValues, EntityExcelSerializationHelper.GetUnitKeys(), package.Workbook.Worksheets.Add("Units"));
-                WriteWorksheet(tankValues, EntityExcelSerializationHelper.GetTankKeys(), package.Workbook.Worksheets.Add("Tanks"));
+                WriteWorksheet(factoryValues, Factory.GetFactoryKeys(), package.Workbook.Worksheets.Add("Factories"));
+                WriteWorksheet(unitValues, Unit.GetUnitKeys(), package.Workbook.Worksheets.Add("Units"));
+                WriteWorksheet(tankValues, Tank.GetTankKeys(), package.Workbook.Worksheets.Add("Tanks"));
 
                 foreach (var sh in package.Workbook.Worksheets)
                     sh.Cells[sh.Dimension.Address].AutoFitColumns();
@@ -71,7 +71,8 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
             return container;
         }
 
-        private static IList<T> ReadFromExcel<T>(string excelFilePath, string sheetName)
+        // это было жоска
+        private static IList<T> ReadFromExcel<T>(string excelFilePath, string sheetName) where T : IEntity<T>
         {
             IList<T> items = [];
 
@@ -87,13 +88,12 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
             {
                 T item = Activator.CreateInstance<T>();
 
-                var properties = typeof(T).GetProperties();
-                var numberOfColumns = properties.Length;
+                var values = item.GetValues();
+                var keys = item.GetKeys();
 
-                var startColumn = 1;
-                for (int col = 1; col <= numberOfColumns; col++)
+                for (int col = 1; col <= keys.Count; col++)
                 {
-                    var cellValue = worksheet.Cells[row, startColumn + col - 1].Value;
+                    var cellValue = worksheet.Cells[row, col].Value;
 
                     if (cellValue is null)
                         continue;
@@ -101,9 +101,9 @@ namespace dotnetLearning.FactoryApp.Service.ExcelSerialization
                     if (cellValue is double)
                         cellValue = Convert.ToInt32(cellValue);
 
-                    properties[col - 1].SetValue(item, cellValue);
+                    values[keys[col - 1]] = cellValue;
                 }
-                items.Add(item);
+                items.Add(item.Create(values));
             }
             return items;
         }
