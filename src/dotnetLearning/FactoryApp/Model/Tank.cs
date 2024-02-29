@@ -32,15 +32,15 @@ namespace dotnetLearning.FactoryApp.Model
         }
 
         public static IDictionary<string, object?> GetValues(Tank tank) =>
-    new Dictionary<string, object?>
-    {
+            new Dictionary<string, object?>
+            {
                 { "Name", tank.Name },
                 { "Description", tank.Description },
                 { "Id", tank.Id },
                 { "UnitId", tank.UnitId},
                 { "Volume", tank.Volume},
                 { "MaxVolume" ,tank.MaxVolume }
-    };
+            };
 
         public static IList<string> GetTankKeys() => ["Name", "Description", "Id", "UnitId", "Volume", "MaxVolume"];
     }

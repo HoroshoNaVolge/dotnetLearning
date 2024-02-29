@@ -27,12 +27,12 @@ namespace dotnetLearning.FactoryApp.Model
         }
 
         public static IDictionary<string, object?> GetValues(Factory factory) =>
-    new Dictionary<string, object?>
-    {
-                { "Name", factory.Name },
-                { "Description", factory.Description },
-                { "Id", factory.Id },
-    };
+                new Dictionary<string, object?>
+                {
+                    { "Name", factory.Name },
+                    { "Description", factory.Description },
+                    { "Id", factory.Id },
+                 };
 
         public static IList<string> GetFactoryKeys() => ["Name", "Description", "Id"];
     }

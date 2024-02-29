@@ -325,7 +325,7 @@ namespace dotnetLearning.FactoryApp.Service
             };
         }
 
-        private static Factory CreateFactoryByUserInput(IView view)
+        private static Factory? CreateFactoryByUserInput(IView view)
         {
             view.ShowMessage("Введите данные завода:");
 

@@ -173,7 +173,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         public async Task AddDataToExcelAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || excelTransformator is null) return;
 
             if (tanks is null || factories is null || units is null)
                 await GetAllJsonDataAsync(_jsonFilePath);
@@ -281,7 +281,5 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
                 FirstOrDefault(Tank => Tank.Name == searchName);
             return tankResult != default ? tankResult : null;
         }
-
-
     }
 }
