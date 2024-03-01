@@ -23,6 +23,11 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token);
 
         public Task WriteAllToDbAsync(CancellationToken token);
+        public Task AddFacilityDbAsync(IFacility facility, CancellationToken token);
+        public Task UpdateFacilityDbAsync(IFacility facility, CancellationToken token);
+        public Task DeleteFacilityDbAsync(IFacility facility, CancellationToken token);
+        public Task GetFacilitiesDbAsync(CancellationToken token);
+
         /// <returns>Строка с количеством текущих объектов Factory, Unit,Tank</returns>
         public string? GetCurrentConfiguration();
         public string? GetTotalSummary();
@@ -291,6 +296,42 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             if (dbService is null || factories is null || units is null || tanks is null)
                 return;
             await dbService.CreateAll(factories, units, tanks, token);
+        }
+
+        public async Task AddFacilityDbAsync(IFacility facility, CancellationToken token)
+        {
+            if (dbService is null)
+                return;
+            await dbService.AddFacility(facility, token);
+        }
+
+        public async Task UpdateFacilityDbAsync(IFacility facility, CancellationToken token)
+        {
+            if (dbService is null)
+                return;
+            await dbService.UpdateFacility(facility, token);
+        }
+
+        public async Task DeleteFacilityDbAsync(IFacility facility, CancellationToken token)
+        {
+            if (dbService is null)
+                return;
+            await dbService.DeleteFacility(facility, token);
+        }
+
+        public async Task GetFacilitiesDbAsync(CancellationToken token)
+        {
+            if (dbService is null) return;
+
+            if (container is null)
+#nullable disable
+                container = new(factories, units, tanks);
+#nullable restore
+            await dbService.GetFacilities(container, token);
+
+            factories = container.Factories;
+            units = container.Units;
+            tanks = container.Tanks;
         }
     }
 }

@@ -42,8 +42,12 @@ namespace dotnetLearning.FactoryApp.Service
                     "get unitsSummary - показать сводку по заводам\n" +
                     "find unit - найти резервуар по названию\n" +
                     "find factory - найти установку по названию\n" +
-                    "search - поиск по названию\n" +
+                    "search - поиск по названию\n\n" +
                     "write db - записать все объекты в БД\n" +
+                    "read db - прочитать все объекты из БД\n" +
+                    "add db - добавить объект в БД\n" +
+                    "delete db - удалить объект из БД\n" +
+                    "update db - обновить объект в БД\n\n" +
                     "exit - выход из программы\n" +
                     "Введите команду:");
 
@@ -264,6 +268,117 @@ namespace dotnetLearning.FactoryApp.Service
 
                     case "write db":
                         await facilityService.WriteAllToDbAsync(cancellationToken);
+                        break;
+
+                    case "read db":
+                        await facilityService.GetFacilitiesDbAsync(cancellationToken);
+                        break;
+
+                    case "add db":
+                        var typeFacDbStr = "dotnetLearning.FactoryApp.Model." + view.GetUserInput("Введите название типа объекта");
+                        var dbFacType = Type.GetType(typeFacDbStr);
+
+                        if (dbFacType is null)
+                        {
+                            view.ShowMessage("Неизвестный тип объекта");
+                            break;
+                        }
+
+                        switch (dbFacType.Name)
+                        {
+                            case "Factory":
+                                var factory = CreateFactoryByUserInput(view);
+                                if (factory is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.AddFacilityDbAsync(factory, cancellationToken);
+                                break;
+                            case "Unit":
+                                var unit = CreateUnitByUserInput(view);
+                                if (unit is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.AddFacilityDbAsync(unit, cancellationToken);
+                                break;
+                            case "Tank":
+                                var tank = CreateTankByUserInput(view);
+                                if (tank is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.AddFacilityDbAsync(tank, cancellationToken);
+                                break;
+                            default:
+                                view.ShowMessage("Неизвестный тип объекта");
+                                break;
+                        }
+                        break;
+                    case "delete db":
+                        var inpString = view.GetUserInput("Введите название объекта для удаления");
+                        if (string.IsNullOrEmpty(inpString))
+                        {
+                            view.ShowMessage("Пустой ввод");
+                            break;
+                        }
+
+                        var facDb = facilityService.Search(inpString);
+                        if (facDb is null)
+                        {
+                            view.ShowMessage("Объект не найден");
+                            break;
+                        }
+
+                        await facilityService.DeleteFacilityDbAsync(facDb, cancellationToken);
+                        break;
+
+                    case "update db":
+                        var typeFacDbStrUpdate = "dotnetLearning.FactoryApp.Model." + view.GetUserInput("Введите название типа объекта");
+                        var dbFacTypeUpdate = Type.GetType(typeFacDbStrUpdate);
+
+                        if (dbFacTypeUpdate is null)
+                        {
+                            view.ShowMessage("Неизвестный тип объекта");
+                            break;
+                        }
+
+                        switch (dbFacTypeUpdate.Name)
+                        {
+                            case "Factory":
+                                var factory = CreateFactoryByUserInput(view);
+                                if (factory is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateFacilityDbAsync(factory, cancellationToken);
+                                break;
+                            case "Unit":
+                                var unit = CreateUnitByUserInput(view);
+                                if (unit is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateFacilityDbAsync(unit, cancellationToken);
+                                break;
+                            case "Tank":
+                                var tank = CreateTankByUserInput(view);
+                                if (tank is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateFacilityDbAsync(tank, cancellationToken);
+                                break;
+                            default:
+                                view.ShowMessage("Неизвестный тип объекта");
+                                break;
+                        }
                         break;
                     case "exit":
                         userInteractionFinished = true;

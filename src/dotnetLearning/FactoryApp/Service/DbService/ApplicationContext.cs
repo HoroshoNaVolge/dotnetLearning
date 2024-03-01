@@ -12,8 +12,6 @@ namespace dotnetLearning.FactoryApp.Service.DbService
         public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
         {
-            // в учебныех целях, чтобы каждый раз создавать базу заново
-            Database.EnsureDeleted();
             Database.EnsureCreated();
         }
     }
