@@ -1,4 +1,5 @@
 ﻿using dotnetLearning.FactoryApp.Model;
+using dotnetLearning.FactoryApp.Service.DbService;
 using dotnetLearning.FactoryApp.Service.ExcelSerialization;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public Task AddDataToExcelAsync(IFacility facility, CancellationToken token);
         public Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token);
 
+        public Task WriteAllToDbAsync(CancellationToken token);
         /// <returns>Строка с количеством текущих объектов Factory, Unit,Tank</returns>
         public string? GetCurrentConfiguration();
         public string? GetTotalSummary();
@@ -39,6 +41,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
     {
         private FacilitiesContainer? container = null;
         private ExcelTransformator? excelTransformator = null;
+        private DbFacilitiesService? dbService = null;
         private static readonly JsonSerializerOptions jsonSerializerOptions = new()
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
@@ -51,7 +54,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 
         private readonly string _jsonFilePath;
 
-        public FacilityService(IOptions<FacilityServiceOptions> options, ExcelTransformator excelTransformator)
+        public FacilityService(IOptions<FacilityServiceOptions> options, ExcelTransformator excelTransformator, DbFacilitiesService dbService)
         {
             if (string.IsNullOrEmpty(options.Value.FacilitiesJsonFilePath))
                 throw new ArgumentException("В конфигурации ошибка в JsonFilePath");
@@ -59,6 +62,7 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             _jsonFilePath = options.Value.FacilitiesJsonFilePath;
 
             this.excelTransformator = excelTransformator;
+            this.dbService = dbService;
         }
 
         #region JsonSerialization
@@ -280,6 +284,13 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             var tankResult = container.Tanks.
                 FirstOrDefault(Tank => Tank.Name == searchName);
             return tankResult != default ? tankResult : null;
+        }
+
+        public async Task WriteAllToDbAsync(CancellationToken token)
+        {
+            if (dbService is null || factories is null || units is null || tanks is null)
+                return;
+            await dbService.CreateAll(factories, units, tanks, token);
         }
     }
 }

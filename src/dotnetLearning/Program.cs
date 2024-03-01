@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
 using dotnetLearning.FactoryApp.Service.ExcelSerialization;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using dotnetLearning.FactoryApp.Service.DbService;
 
 internal class Program
 {
@@ -21,12 +24,19 @@ internal class Program
         var services = new ServiceCollection();
         services.Configure<FacilityServiceOptions>(config.GetSection(FacilityServiceOptions.SectionName));
 
-        var options = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
+        var optionsCheckIfValid = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
+
+        var connectionString = string.IsNullOrEmpty(config.GetConnectionString("DefaultConnection")) 
+            ? throw new ArgumentNullException("Не найдена или пуста строка подключения к БД")  
+            : config.GetConnectionString("DefaultConnection");
+
+        services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connectionString));
 
         services.AddSingleton<FactoryAppService>()
             .AddSingleton<IView, ConsoleView>()
             .AddSingleton<ExcelTransformator>()
-            .AddScoped<IFacilityService, FacilityService>();
+            .AddScoped<IFacilityService, FacilityService>()
+            .AddSingleton<DbFacilitiesService>();
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();
 

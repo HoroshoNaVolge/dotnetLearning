@@ -2,8 +2,6 @@
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
 using dotnetLearning.FactoryApp.Model;
-using dotnetLearning.FactoryApp.Service.ExcelSerialization;
-using Autofac.Core;
 
 namespace dotnetLearning.FactoryApp.Service
 {
@@ -45,6 +43,7 @@ namespace dotnetLearning.FactoryApp.Service
                     "find unit - найти резервуар по названию\n" +
                     "find factory - найти установку по названию\n" +
                     "search - поиск по названию\n" +
+                    "write db - записать все объекты в БД\n" +
                     "exit - выход из программы\n" +
                     "Введите команду:");
 
@@ -263,6 +262,9 @@ namespace dotnetLearning.FactoryApp.Service
                         await facilityService.DeleteDataFromJsonAsync(facExcel, cancellationToken);
                         break;
 
+                    case "write db":
+                        await facilityService.WriteAllToDbAsync(cancellationToken);
+                        break;
                     case "exit":
                         userInteractionFinished = true;
                         break;
