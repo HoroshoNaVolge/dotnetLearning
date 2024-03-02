@@ -1,16 +1,10 @@
-﻿using dotnetLearning.JsonParserApp;
-using dotnetLearning.DadataAppConsole;
-using dotnetLearning.Other;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using dotnetLearning.FactoryApp.Service;
 using Microsoft.Extensions.DependencyInjection;
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
-using dotnetLearning.FactoryApp.Service.ExcelSerialization;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using dotnetLearning.FactoryApp.Service.DbService;
+using dotnetLearning.FactoryApp.Service.SerializationService;
 
 internal class Program
 {
@@ -26,16 +20,20 @@ internal class Program
 
         var optionsCheckIfValid = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
 
-        var connectionString = string.IsNullOrEmpty(config.GetConnectionString("DefaultConnection")) 
-            ? throw new ArgumentNullException("Не найдена или пуста строка подключения к БД")  
+        if (string.IsNullOrEmpty(optionsCheckIfValid.FacilitiesJsonFilePath) || string.IsNullOrEmpty(optionsCheckIfValid.FacilitiesExcelFilePath))
+            throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: отсутствует путь файлов json или excel");
+
+        var connectionString = string.IsNullOrEmpty(config.GetConnectionString("DefaultConnection"))
+            ? throw new ArgumentNullException("Не найдена или пуста строка подключения к БД")
             : config.GetConnectionString("DefaultConnection");
 
         services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connectionString));
 
         services.AddSingleton<FactoryAppService>()
-            .AddSingleton<IView, ConsoleView>()
-            .AddSingleton<ExcelTransformator>()
             .AddScoped<IFacilityService, FacilityService>()
+            .AddSingleton<IView, ConsoleView>()
+            .AddSingleton<JsonService>()
+            .AddSingleton<ExcelService>()
             .AddSingleton<DbFacilitiesService>();
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();

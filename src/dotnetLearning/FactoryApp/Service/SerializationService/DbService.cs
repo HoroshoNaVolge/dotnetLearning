@@ -2,20 +2,20 @@
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using Microsoft.EntityFrameworkCore;
 
-namespace dotnetLearning.FactoryApp.Service.DbService
+namespace dotnetLearning.FactoryApp.Service.SerializationService
 {
-    public class DbFacilitiesService(DbContextOptions<ApplicationContext> options)
+    public class DbFacilitiesService(DbContextOptions<ApplicationContext> options) : ISerializationService
     {
-        public async Task CreateAll(IList<Factory> factories, IList<Unit> units, IList<Tank> tanks, CancellationToken token)
+        public async Task CreateOrUpdateAllAsync(FacilitiesContainer container, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
-            db.Factories.AddRange(factories);
-            db.Units.AddRange(units);
-            db.Tanks.AddRange(tanks);
+            db.Factories.AddRange(container.Factories);
+            db.Units.AddRange(container.Units);
+            db.Tanks.AddRange(container.Tanks);
             db.SaveChanges();
         }
 
-        public async Task AddFacility(IFacility facility, CancellationToken token)
+        public async Task AddFacilityAsync(IFacility facility, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
             if (facility is Factory factory)
@@ -27,7 +27,7 @@ namespace dotnetLearning.FactoryApp.Service.DbService
             db.SaveChanges();
         }
 
-        public async Task UpdateFacility(IFacility facility, CancellationToken token)
+        public async Task UpdateFacilityAsync(IFacility facility, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
             if (facility is Factory factory)
@@ -39,7 +39,7 @@ namespace dotnetLearning.FactoryApp.Service.DbService
             db.SaveChanges();
         }
 
-        public async Task DeleteFacility(IFacility facility, CancellationToken token)
+        public async Task DeleteFacilityAsync(IFacility facility, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
             if (facility is Factory factory)
@@ -51,12 +51,24 @@ namespace dotnetLearning.FactoryApp.Service.DbService
             db.SaveChanges();
         }
 
-        public async Task GetFacilities(FacilitiesContainer container, CancellationToken token)
+        public async Task GetFacilitiesAsync(FacilitiesContainer container, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
             container.Factories = [.. db.Factories];
             container.Units = [.. db.Units];
             container.Tanks = [.. db.Tanks];
+        }
+    }
+
+    public class ApplicationContext : DbContext
+    {
+        public DbSet<Factory> Factories { get; set; }
+        public DbSet<Unit> Units { get; set; }
+        public DbSet<Tank> Tanks { get; set; }
+        public ApplicationContext(DbContextOptions<ApplicationContext> options)
+            : base(options)
+        {
+            Database.EnsureCreated();
         }
     }
 }

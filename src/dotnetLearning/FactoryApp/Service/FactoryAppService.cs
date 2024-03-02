@@ -20,15 +20,11 @@ namespace dotnetLearning.FactoryApp.Service
             view.InputReceived += HandleUserInput;
 #nullable restore
 
-            view.ShowMessage($"Система при инициализации: {facilityService.GetCurrentConfiguration()}");
-            view.ShowMessage("Возможен CRUD JSON и Excel. Для проверки после выполнения команд используйте get total");
-
-            while (!userInteractionFinished)
-            {
-                var userInput = view.GetUserInput(
+            view.ShowMessage(
                     "\nread json - десериализовать все объекты из json\n" +
                     "write json - сериализовать все объекты в json\n" +
                     "add json - добавить объект в json\n" +
+                    "update json - обновить объект в json\n" +
                     "delete json - удалить объект из json\n\n" +
                     "read excel - импортировать все объекты из Excel\n" +
                     "write excel - экспортировать все объекты в Excel\n" +
@@ -48,8 +44,14 @@ namespace dotnetLearning.FactoryApp.Service
                     "add db - добавить объект в БД\n" +
                     "delete db - удалить объект из БД\n" +
                     "update db - обновить объект в БД\n\n" +
-                    "exit - выход из программы\n" +
-                    "Введите команду:");
+                    "exit - выход из программы\n");
+
+            view.ShowMessage($"Система при инициализации: {facilityService.GetCurrentConfiguration()}");
+            view.ShowMessage("Возможен CRUD JSON, Excel и PostgresDB (для ДБ необходима настройка appsettings.json (порт/пароль).\nДля проверки после выполнения команд используйте get total\n\nДля первичной инициализации используйте read json");
+
+            while (!userInteractionFinished)
+            {
+                var userInput = view.GetUserInput("Введите команду: ");
 
                 switch (userInput)
                 {
@@ -180,8 +182,9 @@ namespace dotnetLearning.FactoryApp.Service
                             view.ShowMessage("Пустой ввод");
                             break;
                         }
-
+                        await facilityService.GetAllJsonDataAsync(options.Value.FacilitiesJsonFilePath, cancellationToken);
                         var fac = facilityService.Search(inputString);
+
                         if (fac is null)
                         {
                             view.ShowMessage("Объект не найден");
@@ -192,8 +195,55 @@ namespace dotnetLearning.FactoryApp.Service
                         break;
 
                     case "read json":
-                        await facilityService.GetAllJsonDataAsync(options.Value.FacilitiesJsonFilePath);
+                        await facilityService.GetAllJsonDataAsync(options.Value.FacilitiesJsonFilePath, cancellationToken);
                         break;
+
+                    case "update json":
+                        {
+                            var typeFacStr = "dotnetLearning.FactoryApp.Model." + view.GetUserInput("Введите название типа объекта");
+                            var facType = Type.GetType(typeFacStr);
+
+                            if (facType is null)
+                            {
+                                view.ShowMessage("Неизвестный тип объекта");
+                                break;
+                            }
+
+                            switch (facType.Name)
+                            {
+                                case "Factory":
+                                    var factory = CreateFactoryByUserInput(view);
+                                    if (factory is null)
+                                    {
+                                        view.ShowMessage("Ошибка ввода");
+                                        break;
+                                    }
+                                    await facilityService.UpdateJsonDataAsync(factory, cancellationToken);
+                                    break;
+                                case "Unit":
+                                    var unit = CreateUnitByUserInput(view);
+                                    if (unit is null)
+                                    {
+                                        view.ShowMessage("Ошибка ввода");
+                                        break;
+                                    }
+                                    await facilityService.UpdateJsonDataAsync(unit, cancellationToken);
+                                    break;
+                                case "Tank":
+                                    var tank = CreateTankByUserInput(view);
+                                    if (tank is null)
+                                    {
+                                        view.ShowMessage("Ошибка ввода");
+                                        break;
+                                    }
+                                    await facilityService.UpdateJsonDataAsync(tank, cancellationToken);
+                                    break;
+                                default:
+                                    view.ShowMessage("Неизвестный тип объекта");
+                                    break;
+                            }
+                            break;
+                        }
 
                     case "write excel":
                         await facilityService.CreateOrUpdateDataExcelAsync(cancellationToken);
@@ -231,7 +281,7 @@ namespace dotnetLearning.FactoryApp.Service
                                     view.ShowMessage("Ошибка ввода");
                                     break;
                                 }
-                                await facilityService.AddDataToJsonAsync(unit, cancellationToken);
+                                await facilityService.AddDataToExcelAsync(unit, cancellationToken);
                                 break;
                             case "Tank":
                                 var tank = CreateTankByUserInput(view);
@@ -240,7 +290,52 @@ namespace dotnetLearning.FactoryApp.Service
                                     view.ShowMessage("Ошибка ввода");
                                     break;
                                 }
-                                await facilityService.AddDataToJsonAsync(tank, cancellationToken);
+                                await facilityService.AddDataToExcelAsync(tank, cancellationToken);
+                                break;
+                            default:
+                                view.ShowMessage("Неизвестный тип объекта");
+                                break;
+                        }
+                        break;
+
+                    case "update excel":
+                        var typeFacExcelStrUpdate = "dotnetLearning.FactoryApp.Model." + view.GetUserInput("Введите название типа объекта");
+                        var excelFacTypeUpdate = Type.GetType(typeFacExcelStrUpdate);
+
+                        if (excelFacTypeUpdate is null)
+                        {
+                            view.ShowMessage("Неизвестный тип объекта");
+                            break;
+                        }
+
+                        switch (excelFacTypeUpdate.Name)
+                        {
+                            case "Factory":
+                                var factory = CreateFactoryByUserInput(view);
+                                if (factory is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateDataExcelAsync(factory, cancellationToken);
+                                break;
+                            case "Unit":
+                                var unit = CreateUnitByUserInput(view);
+                                if (unit is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateDataExcelAsync(unit, cancellationToken);
+                                break;
+                            case "Tank":
+                                var tank = CreateTankByUserInput(view);
+                                if (tank is null)
+                                {
+                                    view.ShowMessage("Ошибка ввода");
+                                    break;
+                                }
+                                await facilityService.UpdateDataExcelAsync(tank, cancellationToken);
                                 break;
                             default:
                                 view.ShowMessage("Неизвестный тип объекта");
@@ -255,7 +350,7 @@ namespace dotnetLearning.FactoryApp.Service
                             view.ShowMessage("Пустой ввод");
                             break;
                         }
-
+                        await facilityService.GetDataFromExcelAsync(cancellationToken);
                         var facExcel = facilityService.Search(inString);
                         if (facExcel is null)
                         {
@@ -263,7 +358,7 @@ namespace dotnetLearning.FactoryApp.Service
                             break;
                         }
 
-                        await facilityService.DeleteDataFromJsonAsync(facExcel, cancellationToken);
+                        await facilityService.DeleteDataFromExcelAsync(facExcel, cancellationToken);
                         break;
 
                     case "write db":
@@ -389,15 +484,12 @@ namespace dotnetLearning.FactoryApp.Service
                         break;
                 }
             }
-#nullable disable
-            view.InputReceived -= HandleUserInput;
-#nullable restore
+            view.InputReceived -= HandleUserInput!;
         }
         private string? FindUnit(string tankName) => facilityService.FindUnit(tankName)?.ToString();
         private string? FindFactory(string unitName) => facilityService.FindFactory(unitName)?.ToString();
 
         private void HandleUserInput(object sender, UserInputEventArgs e) => view.ShowMessage($"Пользователь ввел: {e.UserInput} в {e.InputTime}");
-
 
         private static Tank? CreateTankByUserInput(IView view)
         {

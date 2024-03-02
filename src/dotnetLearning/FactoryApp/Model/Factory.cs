@@ -1,7 +1,4 @@
-﻿
-using dotnetLearning.FactoryApp.Service.ExcelSerialization;
-
-namespace dotnetLearning.FactoryApp.Model
+﻿namespace dotnetLearning.FactoryApp.Model
 {
     public class Factory : IFacility, IEntity<Factory>
     {
