@@ -6,6 +6,7 @@ namespace dotnetLearning.FactoryApp.View
         public string? GetUserInput(string message);
         public string? GetUserInput();
         public void ShowMessage(string? message);
+        public void ClearView();
     }
     public class UserInputEventArgs : EventArgs
     {

@@ -5,6 +5,7 @@ using dotnetLearning.FactoryApp.Service.FacilityService;
 using dotnetLearning.FactoryApp.View;
 using Microsoft.EntityFrameworkCore;
 using dotnetLearning.FactoryApp.Service.SerializationService;
+using dotnetLearning.FactoryApp;
 
 internal class Program
 {
@@ -21,10 +22,10 @@ internal class Program
         var optionsCheckIfValid = config.GetSection(FacilityServiceOptions.SectionName).Get<FacilityServiceOptions>() ?? throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: не найдена секция FilePath или отсутствует файл Json");
 
         if (string.IsNullOrEmpty(optionsCheckIfValid.FacilitiesJsonFilePath) || string.IsNullOrEmpty(optionsCheckIfValid.FacilitiesExcelFilePath))
-            throw new ArgumentNullException(nameof(FacilityServiceOptions), "Ошибка конфигурации: отсутствует путь файлов json или excel");
+            throw new ArgumentNullException(nameof(FacilityServiceOptions), MessageConstants.InvalidConfigurationFilePathErrorMessage);
 
         var connectionString = string.IsNullOrEmpty(config.GetConnectionString("DefaultConnection"))
-            ? throw new ArgumentNullException("Не найдена или пуста строка подключения к БД")
+            ? throw new ArgumentNullException(MessageConstants.InvalidConnectionStringErrorMessage)
             : config.GetConnectionString("DefaultConnection");
 
         services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connectionString));
@@ -39,7 +40,7 @@ internal class Program
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-        var app = serviceProvider.GetService<FactoryAppService>() ?? throw new ArgumentNullException(nameof(FactoryAppService), "Ошибка регистрации сервисов в контейнере зависимостей");
+        var app = serviceProvider.GetService<FactoryAppService>() ?? throw new ArgumentNullException(nameof(FactoryAppService), MessageConstants.ServiceRegistrationErrorMessage);
         await app.RunAsync();
     }
 }

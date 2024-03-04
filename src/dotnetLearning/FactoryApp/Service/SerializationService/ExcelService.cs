@@ -11,9 +11,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public ExcelService(IOptions<FacilityServiceOptions> options)
         {
-            if (string.IsNullOrEmpty(options.Value.FacilitiesExcelFilePath)) throw new ArgumentNullException("Неверно задан путь файла Excel");
-
-            excelFilePath = options.Value.FacilitiesExcelFilePath;
+            excelFilePath = options.Value.FacilitiesExcelFilePath!;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
 
@@ -65,20 +63,32 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
         {
             if (facility is null || !File.Exists(excelFilePath)) return;
 
+            FacilitiesContainer containerToUpdate = await Task.Run(() =>
+            {
+                return new FacilitiesContainer(
+                    ReadFromExcel<Factory>(excelFilePath, "Factories"),
+                    ReadFromExcel<Unit>(excelFilePath, "Units"),
+                    ReadFromExcel<Tank>(excelFilePath, "Tanks"));
+            }) ?? throw new ArgumentNullException(MessageConstants.ExcelReaderErrorMessage);
+
             switch (facility)
             {
                 case Factory factory:
-                    await Task.Run(() => WriteWorksheet(new List<IDictionary<string, object?>> { factory.GetValues() }, Factory.GetFactoryKeys(), new ExcelPackage(new FileInfo(excelFilePath)).Workbook.Worksheets["Factories"]), token);
+                    containerToUpdate.Factories.Add(factory);
                     break;
+
                 case Unit unit:
-                    await Task.Run(() => WriteWorksheet(new List<IDictionary<string, object?>> { unit.GetValues() }, Unit.GetUnitKeys(), new ExcelPackage(new FileInfo(excelFilePath)).Workbook.Worksheets["Units"]), token);
+                    containerToUpdate.Units.Add(unit);
                     break;
+
                 case Tank tank:
-                    await Task.Run(() => WriteWorksheet(new List<IDictionary<string, object?>> { tank.GetValues() }, Tank.GetTankKeys(), new ExcelPackage(new FileInfo(excelFilePath)).Workbook.Worksheets["Tanks"]), token);
+                    containerToUpdate.Tanks.Add(tank);
                     break;
+
                 default:
-                    throw new ArgumentException("Неизвестный тип объекта");
+                    throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
             }
+            await CreateOrUpdateAllAsync(containerToUpdate, token);
         }
 
         public async Task UpdateFacilityAsync(IFacility facility, CancellationToken token)
@@ -91,7 +101,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                     ReadFromExcel<Factory>(excelFilePath, "Factories"),
                     ReadFromExcel<Unit>(excelFilePath, "Units"),
                     ReadFromExcel<Tank>(excelFilePath, "Tanks"));
-            }) ?? throw new ArgumentNullException("Ошибка чтения данных из Excel");
+            }) ?? throw new ArgumentNullException(MessageConstants.ExcelReaderErrorMessage);
 
             switch (facility)
             {
@@ -143,7 +153,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                     break;
 
                 default:
-                    throw new ArgumentException("Неизвестный тип объекта");
+                    throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
             }
             await CreateOrUpdateAllAsync(containerToUpdate, token);
         }
@@ -158,7 +168,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                     ReadFromExcel<Factory>(excelFilePath, "Factories"),
                     ReadFromExcel<Unit>(excelFilePath, "Units"),
                     ReadFromExcel<Tank>(excelFilePath, "Tanks"));
-            }) ?? throw new ArgumentNullException("Ошибка чтения данных из Excel");
+            }) ?? throw new ArgumentNullException(MessageConstants.ExcelReaderErrorMessage);
 
             switch (facility)
             {
@@ -180,7 +190,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                         containerToUpdate.Tanks.Remove(tankToRemove);
                     break;
                 default:
-                    throw new ArgumentException("Неизвестный тип объекта");
+                    throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
             }
             await CreateOrUpdateAllAsync(containerToUpdate, token);
         }

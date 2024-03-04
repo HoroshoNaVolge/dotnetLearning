@@ -1,10 +1,5 @@
 ﻿using dotnetLearning.FactoryApp.Model;
 using dotnetLearning.FactoryApp.Service.FacilityService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dotnetLearning.FactoryApp.Service.SerializationService
 {

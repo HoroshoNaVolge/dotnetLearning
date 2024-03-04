@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dotnetLearning.FactoryApp.Service.SerializationService
 {
@@ -21,7 +16,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                 SerializationServiceType.Json => serviceProvider.GetService<JsonService>()!,
                 SerializationServiceType.Excel => serviceProvider.GetService<ExcelService>()!,
                 SerializationServiceType.Db => serviceProvider.GetService<DbFacilitiesService>()!,
-                _ => throw new ArgumentException("Ошибка в типе сервиса сериализации"),
+                _ => throw new ArgumentException(MessageConstants.SerializationServiceTypeErrorMessage),
             };
         }
     }

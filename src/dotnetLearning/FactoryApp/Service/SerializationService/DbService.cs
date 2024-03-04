@@ -1,6 +1,7 @@
 ﻿using dotnetLearning.FactoryApp.Model;
 using dotnetLearning.FactoryApp.Service.FacilityService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace dotnetLearning.FactoryApp.Service.SerializationService
 {
@@ -9,10 +10,50 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
         public async Task CreateOrUpdateAllAsync(FacilitiesContainer container, CancellationToken token)
         {
             await using ApplicationContext db = new(options);
-            db.Factories.AddRange(container.Factories);
-            db.Units.AddRange(container.Units);
-            db.Tanks.AddRange(container.Tanks);
-            db.SaveChanges();
+
+            foreach (var factory in container.Factories)
+            {
+                var existingFactory = db.Factories.Find(factory.Id);
+
+                if (existingFactory != null)
+                {
+                    db.Entry(existingFactory).CurrentValues.SetValues(factory);
+                }
+                else
+                {
+                    db.Factories.Add(factory);
+                }
+            }
+
+            foreach (var unit in container.Units)
+            {
+                var existingUnit = db.Units.Find(unit.Id);
+
+                if (existingUnit != null)
+                {
+                    db.Entry(existingUnit).CurrentValues.SetValues(unit);
+                }
+                else
+                {
+                    db.Units.Add(unit);
+                }
+            }
+
+            foreach (var tank in container.Tanks)
+            {
+                var existingTank = db.Tanks.Find(tank.Id);
+
+                if (existingTank != null)
+                {
+                    db.Entry(existingTank).CurrentValues.SetValues(tank);
+                }
+                else
+                {
+                    db.Tanks.Add(tank);
+                }
+            }
+
+            await db.SaveChangesAsync(token);
         }
 
         public async Task AddFacilityAsync(IFacility facility, CancellationToken token)
@@ -69,6 +110,6 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
             : base(options)
         {
             Database.EnsureCreated();
-         }
+        }
     }
 }

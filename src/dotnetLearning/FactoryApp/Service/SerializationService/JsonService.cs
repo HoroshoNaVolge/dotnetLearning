@@ -36,7 +36,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
             using (var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
             {
-                deselializedContainer = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+                deselializedContainer = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException(MessageConstants.DeserializationErrorMessage);
             }
             container.Factories = deselializedContainer.Factories;
             container.Units = deselializedContainer.Units;
@@ -51,7 +51,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
             using (var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
             {
-                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException(MessageConstants.DeserializationErrorMessage);
 
                 switch (facility)
                 {
@@ -104,7 +104,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                         };
                         break;
                     default:
-                        throw new ArgumentException("Неизвестный тип объекта");
+                        throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
                 }
             }
             await CreateOrUpdateAllAsync(containerToUpdate, token);
@@ -118,7 +118,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
             using (var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
             {
-                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException(MessageConstants.DeserializationErrorMessage);
 
                 switch (facility)
                 {
@@ -132,7 +132,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
                         containerToUpdate.Tanks.Add(tank);
                         break;
                     default:
-                        throw new ArgumentException("Неизвестный тип объекта");
+                        throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
                 }
             }
             await CreateOrUpdateAllAsync(containerToUpdate, token);
@@ -146,27 +146,27 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
             using (var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
             {
-                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+                containerToUpdate = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException(MessageConstants.DeserializationErrorMessage);
 
                 switch (facility)
                 {
                     case Factory factory:
-                        var factoriesToRemove = containerToUpdate.Factories.Where(f => f.Name == factory.Name).ToList<Factory>();
+                        var factoriesToRemove = containerToUpdate.Factories.Where(f => f.Name == factory.Name).ToList();
                         foreach (var factoryToRemove in factoriesToRemove)
                             containerToUpdate.Factories.Remove(factoryToRemove);
                         break;
                     case Unit unit:
-                        var unitsToRemove = containerToUpdate.Units.Where(u => u.Name == unit.Name).ToList<Unit>();
+                        var unitsToRemove = containerToUpdate.Units.Where(u => u.Name == unit.Name).ToList();
                         foreach (var unitToRemove in unitsToRemove)
                             containerToUpdate.Units.Remove(unitToRemove);
                         break;
                     case Tank tank:
-                        var tanksToRemove = containerToUpdate.Tanks.Where(t => t.Name == tank.Name).ToList<Tank>();
+                        var tanksToRemove = containerToUpdate.Tanks.Where(t => t.Name == tank.Name).ToList();
                         foreach (var tankToRemove in tanksToRemove)
                             containerToUpdate.Tanks.Remove(tankToRemove);
                         break;
                     default:
-                        throw new ArgumentException("Неизвестный тип объекта");
+                        throw new ArgumentException(MessageConstants.InvalidFacilityTypeErrorMessage);
                 }
             }
             await CreateOrUpdateAllAsync(containerToUpdate, token);
