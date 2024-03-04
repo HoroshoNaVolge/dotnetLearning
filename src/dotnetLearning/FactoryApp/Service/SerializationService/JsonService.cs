@@ -31,13 +31,21 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task GetFacilitiesAsync(FacilitiesContainer container, CancellationToken token)
         {
-            using var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-            container = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+            FacilitiesContainer deselializedContainer = container;
+            if (!File.Exists(jsonFilePath)) return;
+
+            using (var stream = new FileStream(jsonFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true))
+            {
+                deselializedContainer = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
+            }
+            container.Factories = deselializedContainer.Factories;
+            container.Units = deselializedContainer.Units;
+            container.Tanks = deselializedContainer.Tanks;
         }
 
         public async Task UpdateFacilityAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || !File.Exists(jsonFilePath)) return;
 
             FacilitiesContainer? containerToUpdate = null;
 
@@ -104,7 +112,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task AddFacilityAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || !File.Exists(jsonFilePath)) return;
 
             FacilitiesContainer? containerToUpdate = null;
 
@@ -132,7 +140,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task DeleteFacilityAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || !File.Exists(jsonFilePath)) return;
 
             FacilitiesContainer? containerToUpdate = null;
 

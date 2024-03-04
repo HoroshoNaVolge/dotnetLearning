@@ -10,23 +10,11 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
 {
     public interface IFacilityService
     {
-        public Task AddDataToJsonAsync(IFacility facility, CancellationToken token);
-        public Task CreateOrUpdateJsonDataAsync(CancellationToken token);
-        public Task GetAllJsonDataAsync(string filePath, CancellationToken token);
-        public Task DeleteDataFromJsonAsync(IFacility facility, CancellationToken token);
-        public Task UpdateJsonDataAsync(IFacility facility, CancellationToken token);
-
-        public Task CreateOrUpdateDataExcelAsync(CancellationToken token);
-        public Task GetDataFromExcelAsync(CancellationToken token);
-        public Task AddDataToExcelAsync(IFacility facility, CancellationToken token);
-        public Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token);
-        public Task UpdateDataExcelAsync(IFacility facility, CancellationToken token);
-
-        public Task WriteAllToDbAsync(CancellationToken token);
-        public Task AddFacilityDbAsync(IFacility facility, CancellationToken token);
-        public Task UpdateFacilityDbAsync(IFacility facility, CancellationToken token);
-        public Task DeleteFacilityDbAsync(IFacility facility, CancellationToken token);
-        public Task GetFacilitiesDbAsync(CancellationToken token);
+        public Task CreateOrUpdateDataAsync(SerializationServiceType serviceType, CancellationToken token);
+        public Task GetDataAsync(SerializationServiceType serviceType, CancellationToken token);
+        public Task AddDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token);
+        public Task DeleteDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token);
+        public Task UpdateDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token);
 
         /// <returns>Строка с количеством текущих объектов Factory, Unit,Tank</returns>
         public string? GetCurrentConfiguration();
@@ -42,148 +30,66 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
         public IFacility? Search(string name);
     }
 
-    public class FacilityService(IOptions<FacilityServiceOptions> options, JsonService jsonService, ExcelService excelService, DbFacilitiesService dbService) : IFacilityService
+    public class FacilityService(ISerializationServiceFactory serviceFactory) : IFacilityService
     {
         private FacilitiesContainer? container = null;
-        private readonly JsonService? jsonService = jsonService;
-        private readonly ExcelService? excelService = excelService;
-        private readonly DbFacilitiesService? dbService = dbService;
-        private static readonly JsonSerializerOptions jsonSerializerOptions = new()
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
-            WriteIndented = true,
-        };
+        private readonly ISerializationServiceFactory serviceFactory = serviceFactory;
 
         private IList<Factory>? factories = null;
         private IList<Unit>? units = null;
         private IList<Tank>? tanks = null;
 
-        private readonly string jsonFilePath = options.Value.FacilitiesJsonFilePath!;
-        private readonly string excelFilePath = options.Value.FacilitiesExcelFilePath!;
-
-        #region JsonSerialization
-        public async Task CreateOrUpdateJsonDataAsync(CancellationToken token)
+        public async Task CreateOrUpdateDataAsync(SerializationServiceType serviceType, CancellationToken token)
         {
-            if (container is null || factories is null || tanks is null || units is null) return;
+            if (factories is null || tanks is null || units is null)
+                return;
 
-            container = new(factories, units, tanks);
+            var serializationService = serviceFactory.CreateService(serviceType);
 
-            //await js.CreateOrUpdateAllAsync(container, token);
-            string json = JsonSerializer.Serialize(container, jsonSerializerOptions);
-
-            using var writer = new StreamWriter(jsonFilePath);
-            await writer.WriteAsync(json);
+            await serializationService!.CreateOrUpdateAllAsync(container ?? new(factories, units, tanks), token);
         }
 
-        public async Task AddDataToJsonAsync(IFacility facility, CancellationToken token)
+        public async Task AddDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token)
         {
             if (facility is null) return;
 
-            await jsonService!.AddFacilityAsync(facility, token);
+            var serializationService = serviceFactory.CreateService(serviceType);
+
+            await serializationService!.AddFacilityAsync(facility, token);
         }
 
-        public async Task GetAllJsonDataAsync(string filePath, CancellationToken token)
+        public async Task GetDataAsync(SerializationServiceType serviceType, CancellationToken token)
         {
-            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-
-            var deserializedContainer = await JsonSerializer.DeserializeAsync<FacilitiesContainer>(stream, cancellationToken: token) ?? throw new ArgumentException("Ошибка десериализация в Facilities Container");
-
-            factories = deserializedContainer.Factories;
-            units = deserializedContainer.Units;
-            tanks = deserializedContainer.Tanks;
-        }
-
-        public async Task DeleteDataFromJsonAsync(IFacility facility, CancellationToken token)
-        {
-            if (facility is null) return;
-
-            await jsonService!.DeleteFacilityAsync(facility, token);
-        }
-
-        public async Task UpdateJsonDataAsync(IFacility facility, CancellationToken token)
-        {
-            if (facility is null) return;
-
-            await jsonService!.UpdateFacilityAsync(facility, token);
-        }
-
-        #endregion
-
-        #region ExcelSerialization
-        public async Task CreateOrUpdateDataExcelAsync(CancellationToken token)
-        {
-            if (excelService is null || container is null) return;
-
-            await excelService.CreateOrUpdateAllAsync(container, token);
-        }
-        public async Task GetDataFromExcelAsync(CancellationToken token)
-        {
-            if (excelService is null) return;
+            var serializationService = serviceFactory.CreateService(serviceType);
 
             if (container is null)
 #nullable disable
                 container = new(factories, units, tanks);
 #nullable restore
-            await excelService.GetFacilitiesAsync(container, token);
+            await serializationService.GetFacilitiesAsync(container, token);
 
             factories = container.Factories;
             units = container.Units;
             tanks = container.Tanks;
         }
 
-        public async Task AddDataToExcelAsync(IFacility facility, CancellationToken token)
-        {
-            if (facility is null || excelService is null) return;
-
-            if (tanks is null || factories is null || units is null)
-                await GetAllJsonDataAsync(jsonFilePath, token);
-
-            bool anyAdded = false;
-            switch (facility)
-            {
-                case Tank tank when !tanks?.Any(tank => tank.Id == facility.Id) == true:
-                    tanks?.Add(tank);
-                    anyAdded = true;
-                    break;
-                case Factory factory when !factories?.Any(fac => fac.Id == facility.Id) == true:
-                    factories?.Add(factory);
-                    anyAdded = true;
-                    break;
-                case Unit unit when !units?.Any(u => u.Id == facility.Id) == true:
-                    units?.Add(unit);
-                    anyAdded = true;
-                    break;
-            }
-
-            if (!anyAdded || factories is null || units is null || tanks is null) return;
-
-            container = new(factories, units, tanks);
-
-            await excelService.CreateOrUpdateAllAsync(container, token);
-        }
-
-        public async Task DeleteDataFromExcelAsync(IFacility facility, CancellationToken token)
-        {
-            if (facility.GetType() == typeof(Factory))
-                factories?.Remove((Factory)facility);
-
-            if (facility.GetType() == typeof(Unit))
-                units?.Remove((Unit)facility);
-
-            if (facility.GetType() == typeof(Tank))
-                tanks?.Remove((Tank)facility);
-
-            if (factories is null || units is null || tanks is null) return;
-            await CreateOrUpdateDataExcelAsync(token);
-        }
-
-        public async Task UpdateDataExcelAsync(IFacility facility, CancellationToken token)
+        public async Task DeleteDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token)
         {
             if (facility is null) return;
 
-            await excelService!.UpdateFacilityAsync(facility, token);
+            var serializationService = serviceFactory.CreateService(serviceType);
+
+            await serializationService!.DeleteFacilityAsync(facility, token);
         }
-        #endregion
+
+        public async Task UpdateDataAsync(SerializationServiceType serviceType, IFacility facility, CancellationToken token)
+        {
+            if (facility is null) return;
+
+            var serializationService = serviceFactory.CreateService(serviceType);
+
+            await serializationService!.UpdateFacilityAsync(facility, token);
+        }
 
         #region GetInfoAsString
         public string? GetFactoriesSummary() => factories != null ? string.Join(Environment.NewLine, factories) : null;
@@ -249,47 +155,6 @@ namespace dotnetLearning.FactoryApp.Service.FacilityService
             var tankResult = container.Tanks.
                 FirstOrDefault(Tank => Tank.Name == searchName);
             return tankResult != default ? tankResult : null;
-        }
-        #endregion
-
-        #region DataBaseCRUD
-        public async Task WriteAllToDbAsync(CancellationToken token)
-        {
-            if (container is null || dbService is null)
-                return;
-            await dbService.CreateOrUpdateAllAsync(container, token);
-        }
-        public async Task AddFacilityDbAsync(IFacility facility, CancellationToken token)
-        {
-            if (dbService is null)
-                return;
-            await dbService.AddFacilityAsync(facility, token);
-        }
-        public async Task UpdateFacilityDbAsync(IFacility facility, CancellationToken token)
-        {
-            if (dbService is null)
-                return;
-            await dbService.UpdateFacilityAsync(facility, token);
-        }
-        public async Task DeleteFacilityDbAsync(IFacility facility, CancellationToken token)
-        {
-            if (dbService is null)
-                return;
-            await dbService.DeleteFacilityAsync(facility, token);
-        }
-        public async Task GetFacilitiesDbAsync(CancellationToken token)
-        {
-            if (dbService is null) return;
-
-            if (container is null)
-#nullable disable
-                container = new(factories, units, tanks);
-#nullable restore
-            await dbService.GetFacilitiesAsync(container, token);
-
-            factories = container.Factories;
-            units = container.Units;
-            tanks = container.Tanks;
         }
         #endregion
     }

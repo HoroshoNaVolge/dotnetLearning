@@ -34,7 +34,8 @@ internal class Program
             .AddSingleton<IView, ConsoleView>()
             .AddSingleton<JsonService>()
             .AddSingleton<ExcelService>()
-            .AddSingleton<DbFacilitiesService>();
+            .AddSingleton<DbFacilitiesService>()
+            .AddSingleton<ISerializationServiceFactory, SerializationServiceFactory>();
 
         IServiceProvider serviceProvider = services.BuildServiceProvider();
 

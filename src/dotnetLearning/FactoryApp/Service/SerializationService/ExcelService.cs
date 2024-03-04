@@ -51,6 +51,8 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task GetFacilitiesAsync(FacilitiesContainer container, CancellationToken token)
         {
+            if (!File.Exists(excelFilePath)) return;
+
             await Task.Run(() =>
             {
                 container.Factories = ReadFromExcel<Factory>(excelFilePath, "Factories");
@@ -61,6 +63,8 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task AddFacilityAsync(IFacility facility, CancellationToken token)
         {
+            if (facility is null || !File.Exists(excelFilePath)) return;
+
             switch (facility)
             {
                 case Factory factory:
@@ -79,7 +83,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task UpdateFacilityAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || !File.Exists(excelFilePath)) return;
 
             FacilitiesContainer containerToUpdate = await Task.Run(() =>
             {
@@ -146,7 +150,7 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
 
         public async Task DeleteFacilityAsync(IFacility facility, CancellationToken token)
         {
-            if (facility is null) return;
+            if (facility is null || !File.Exists(excelFilePath)) return;
 
             FacilitiesContainer containerToUpdate = await Task.Run(() =>
             {

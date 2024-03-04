@@ -69,6 +69,6 @@ namespace dotnetLearning.FactoryApp.Service.SerializationService
             : base(options)
         {
             Database.EnsureCreated();
-        }
+         }
     }
 }
