@@ -1,4 +1,4 @@
-# Репозиторий моего прохождения курса [Navferty/dot-learning]( https://github.com/navferty/dotnet-learning)
+# Репозиторий моего прохождения курса [Navferty/dotnet-learning]( https://github.com/navferty/dotnet-learning)
 
 # Репозиторий содержит два проекта:
 # 1.  dotnetLearning
