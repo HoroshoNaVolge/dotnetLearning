@@ -7,17 +7,12 @@ using Tanks.WebApi.DAL.Repositories;
 
 namespace Factories.WebApi.DAL.Repositories
 {
-    public class EFUnitOfWork : IUnitOfWork
+    public class EFUnitOfWork(DbContextOptions<FacilitiesApplicationContext> options) : IUnitOfWork
     {
-        private readonly ApplicationContext db;
+        private readonly FacilitiesApplicationContext db = new FacilitiesApplicationContext(options) ?? throw new ArgumentNullException(nameof(options));
         private readonly FactoryRepository? factoriesRepository;
         private readonly UnitRepository? unitsRepository;
         private readonly TankRepository? tanksRepository;
-
-        public EFUnitOfWork(DbContextOptions<ApplicationContext> options)
-        {
-            db = new ApplicationContext(options) ?? throw new ArgumentNullException(nameof(options));
-        }
 
         public IRepository<Factory> Factories
         {
@@ -55,10 +50,8 @@ namespace Factories.WebApi.DAL.Repositories
             GC.SuppressFinalize(this);
         }
 
-        public void Save()
-        {
-            db.SaveChanges();
-        }
+        public void Save() => db.SaveChanges();
+
 
         private bool disposed = false;
 

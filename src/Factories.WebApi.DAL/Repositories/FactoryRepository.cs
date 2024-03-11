@@ -5,14 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Factories.WebApi.DAL.Repositories
 {
-    public class FactoryRepository(ApplicationContext db) : IRepository<Factory>
+    public class FactoryRepository(FacilitiesApplicationContext db) : IRepository<Factory>
     {
-        private readonly ApplicationContext db = db;
+        private readonly FacilitiesApplicationContext db = db;
 
-        public void Create(Factory item)
-        {
-            db.Factories.Add(item);
-        }
+        public void Create(Factory item) => db.Factories.Add(item);
 
         public void Delete(int id)
         {
@@ -21,24 +18,12 @@ namespace Factories.WebApi.DAL.Repositories
                 db.Factories.Remove(item);
         }
 
-        public IEnumerable<Factory> Find(Func<Factory, bool> predicate)
-        {
-            return db.Factories.Where(predicate).ToList();
-        }
+        public IEnumerable<Factory> Find(Func<Factory, bool> predicate) => db.Factories.Where(predicate).ToList();
 
-        public Factory? Get(int id)
-        {
-            return db.Factories.Find(id);
-        }
+        public Factory? Get(int id) => db.Factories.Find(id);
 
-        public IEnumerable<Factory>? GetAll()
-        {
-            return db.Factories;
-        }
+        public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) => await db.Factories.ToListAsync(token);
 
-        public void Update(Factory item)
-        {
-            db.Entry(item).State = EntityState.Modified;
-        }
+        public void Update(Factory item) => db.Entry(item).State = EntityState.Modified;
     }
 }

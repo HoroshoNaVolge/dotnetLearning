@@ -2,7 +2,7 @@
 {
     public interface IRepository<T> where T : class
     {
-        IEnumerable<T>? GetAll();
+        Task<IEnumerable<T>>? GetAllAsync(CancellationToken token);
         T? Get(int id);
         IEnumerable<T>? Find(Func<T, Boolean> predicate);
         void Create(T item);

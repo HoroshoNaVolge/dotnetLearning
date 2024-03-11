@@ -5,14 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tanks.WebApi.DAL.Repositories
 {
-    public class TankRepository(ApplicationContext db) : IRepository<Tank>
+    public class TankRepository(FacilitiesApplicationContext db) : IRepository<Tank>
     {
-        private readonly ApplicationContext db = db;
+        private readonly FacilitiesApplicationContext db = db;
 
-        public void Create(Tank item)
-        {
-            db.Tanks.Add(item);
-        }
+        public void Create(Tank item) => db.Tanks.Add(item);
 
         public void Delete(int id)
         {
@@ -21,24 +18,12 @@ namespace Tanks.WebApi.DAL.Repositories
                 db.Tanks.Remove(item);
         }
 
-        public IEnumerable<Tank> Find(Func<Tank, bool> predicate)
-        {
-            return db.Tanks.Where(predicate).ToList();
-        }
+        public IEnumerable<Tank> Find(Func<Tank, bool> predicate) => db.Tanks.Where(predicate).ToList();
 
-        public Tank? Get(int id)
-        {
-            return db.Tanks.Find(id);
-        }
+        public Tank? Get(int id) => db.Tanks.Find(id);
 
-        public IEnumerable<Tank>? GetAll()
-        {
-            return db.Tanks;
-        }
+        public async Task<IEnumerable<Tank>>? GetAllAsync(CancellationToken token) => await db.Tanks.ToListAsync(token == default ? CancellationToken.None : token);
 
-        public void Update(Tank item)
-        {
-            db.Entry(item).State = EntityState.Modified;
-        }
+        public void Update(Tank item) => db.Entry(item).State = EntityState.Modified;
     }
 }

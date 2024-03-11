@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetLearning", "src\dotne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.WebApi", "src\AspNetCore.WebApi\AspNetCore.WebApi.csproj", "{795EC67C-CAE0-4AD1-9C84-6F6DE3ADA553}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Factories.WebApi.DAL", "src\Factories.WebApi.DAL\Factories.WebApi.DAL.csproj", "{0F3392F9-90E8-4ECD-B479-35F0CD399369}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Factories.WebApi.DAL", "src\Factories.WebApi.DAL\Factories.WebApi.DAL.csproj", "{0F3392F9-90E8-4ECD-B479-35F0CD399369}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Factories.WebApi.BLL", "Factories.WebApi.BLL\Factories.WebApi.BLL.csproj", "{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0F3392F9-90E8-4ECD-B479-35F0CD399369} = {0F3392F9-90E8-4ECD-B479-35F0CD399369}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +32,10 @@ Global
 		{0F3392F9-90E8-4ECD-B479-35F0CD399369}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F3392F9-90E8-4ECD-B479-35F0CD399369}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F3392F9-90E8-4ECD-B479-35F0CD399369}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Factories.WebApi.DAL.EF;
+using Factories.WebApi.DAL.Interfaces;
+using Factories.WebApi.DAL.Repositories;
 
-namespace Factories.WebApi.DAL
+namespace Factories.WebApi.BLL
 {
     public class Program
     {
@@ -13,6 +17,10 @@ namespace Factories.WebApi.DAL
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<FacilitiesApplicationContext>(options =>
+                           options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
 
             var app = builder.Build();
 
