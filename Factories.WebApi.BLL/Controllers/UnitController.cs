@@ -46,15 +46,15 @@ namespace Factories.WebApi.BLL.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateUnit(Unit unit)
+        public IActionResult UpdateUnit(int id, Unit unit)
         {
             if (unitOfWork == null)
                 return StatusCode(StatusCodes.Status500InternalServerError);
 
-            unitOfWork?.Units?.Update(unit);
+            unitOfWork?.Units?.Update(id, unit);
             unitOfWork?.Save();
 
-            return Ok(unit);
+            return Ok();
         }
 
         [HttpDelete("{id}")]

@@ -24,6 +24,11 @@ namespace Factories.WebApi.DAL.Repositories
 
         public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) => await db.Factories.ToListAsync(token);
 
-        public void Update(Factory item) => db.Entry(item).State = EntityState.Modified;
+        public void Update(int id, Factory factoryToUpdate)
+        {
+            var existingFactory = db.Factories.Find(id) ?? throw new InvalidOperationException("Factory not found");
+
+            db.Entry(existingFactory).CurrentValues.SetValues(factoryToUpdate);
+        }
     }
 }

@@ -41,13 +41,13 @@ namespace Factories.WebApi.BLL.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateTank(Tank tank)
+        public IActionResult UpdateTank(int id, Tank tank)
         {
             if (unitOfWork == null) { return StatusCode(StatusCodes.Status500InternalServerError); }
-            unitOfWork.Tanks.Update(tank);
+            unitOfWork.Tanks.Update(id, tank);
             unitOfWork.Save();
 
-            return Ok(tank);
+            return Ok();
         }
         [HttpDelete]
         public IActionResult DeleteTank(int id)

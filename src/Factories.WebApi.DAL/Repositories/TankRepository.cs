@@ -24,6 +24,11 @@ namespace Tanks.WebApi.DAL.Repositories
 
         public async Task<IEnumerable<Tank>>? GetAllAsync(CancellationToken token) => await db.Tanks.ToListAsync(token == default ? CancellationToken.None : token);
 
-        public void Update(Tank item) => db.Entry(item).State = EntityState.Modified;
+        public void Update(int id, Tank tank)
+        {
+            var existingTank = db.Tanks.Find(id) ?? throw new InvalidOperationException("Tank not found");
+
+            db.Entry(existingTank).CurrentValues.SetValues(tank);
+        }
     }
 }

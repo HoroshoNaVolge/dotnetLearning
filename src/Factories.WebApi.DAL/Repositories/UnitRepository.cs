@@ -24,6 +24,11 @@ namespace Factories.WebApi.DAL.Repositories
 
         public async Task<IEnumerable<Unit>> GetAllAsync(CancellationToken token) => await db.Units.ToListAsync(token == default ? CancellationToken.None : token);
 
-        public void Update(Unit item) => db.Entry(item).State = EntityState.Modified;
+        public void Update(int id, Unit unit)
+        {
+            Unit? existingUnit = db.Units.Find(id) ?? throw new InvalidOperationException("Unit not found");
+
+            db.Entry(existingUnit).CurrentValues.SetValues(unit);
+        }
     }
 }
