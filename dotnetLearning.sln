@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.WebApi", "src\As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Factories.WebApi.DAL", "src\Factories.WebApi.DAL\Factories.WebApi.DAL.csproj", "{0F3392F9-90E8-4ECD-B479-35F0CD399369}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Factories.WebApi.BLL", "Factories.WebApi.BLL\Factories.WebApi.BLL.csproj", "{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Factories.WebApi.BLL", "src\Factories.WebApi.BLL\Factories.WebApi.BLL.csproj", "{6D94965B-897C-4FDF-8E5C-29B7C005D1B2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0F3392F9-90E8-4ECD-B479-35F0CD399369} = {0F3392F9-90E8-4ECD-B479-35F0CD399369}
 	EndProjectSection

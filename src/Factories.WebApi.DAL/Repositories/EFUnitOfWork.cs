@@ -2,8 +2,6 @@
 using Factories.WebApi.DAL.Entities;
 using Factories.WebApi.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Tanks.WebApi.DAL.Repositories;
 
 namespace Factories.WebApi.DAL.Repositories
 {

@@ -6,7 +6,7 @@
         public required string Name { get; set; }
         public string? Description { get; set; }
         public int? UnitId { get; set; }
-        public int? Volume { get; set; }
-        public int? MaxVolume { get; set; }
+        public double? Volume { get; set; }
+        public double? MaxVolume { get; set; }
     }
 }
