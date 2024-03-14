@@ -22,16 +22,18 @@ namespace Factories.WebApi.BLL
 
             builder.Services.AddDbContext<FacilitiesApplicationContext>(options =>
                            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
             builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
 
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Error)
+                .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning).WriteTo.Console()
                 .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
 
-           // builder.Services.AddHostedService<WorkerService>();
+            builder.Services.AddHostedService<WorkerService>();
 
             var app = builder.Build();
 

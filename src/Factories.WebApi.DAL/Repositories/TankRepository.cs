@@ -32,23 +32,5 @@ namespace Factories.WebApi.DAL.Repositories
                 return;
             db.Entry(existingTank).CurrentValues.SetValues(tank);
         }
-
-        public void UpdateAllVolumesRandomly()
-        {
-            var tanks = db.Tanks.ToList();
-
-            var random = new Random();
-
-            foreach (var tank in tanks)
-            {
-                // Генерация случайного числа в пределах от -0.1 до 0.1
-                var randomChange = (random.NextDouble() - 0.5) * 0.2;
-
-                tank.Volume += tank.Volume * randomChange;
-                
-                if (tank.Volume > tank.MaxVolume)
-                    throw new InvalidOperationException("Превышение максимального объёма резервуара");
-            }
-        }
     }
 }
