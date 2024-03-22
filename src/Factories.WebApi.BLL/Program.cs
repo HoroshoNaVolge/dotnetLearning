@@ -4,6 +4,9 @@ using Factories.WebApi.DAL.Interfaces;
 using Factories.WebApi.DAL.Repositories;
 using Serilog;
 using Factories.WebApi.BLL.Services;
+using Factories.WebApi.BLL.Dto;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Factories.WebApi.BLL
 {
@@ -22,6 +25,10 @@ namespace Factories.WebApi.BLL
 
             builder.Services.AddDbContext<FacilitiesApplicationContext>(options =>
                            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<DbInitializer>();
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
 

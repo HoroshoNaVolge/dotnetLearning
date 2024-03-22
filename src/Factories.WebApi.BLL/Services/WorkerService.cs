@@ -19,7 +19,7 @@ namespace Factories.WebApi.BLL.Services
                     return;
 
                 await UpdateAllVolumesRandomlyAsync(tankRepository, stoppingToken);
-
+                unitOfWork.Save();
                 await Task.Delay(5000, stoppingToken);
             }
         }
@@ -47,6 +47,7 @@ namespace Factories.WebApi.BLL.Services
                 //else
                 //    Log.Information($"Изменен объём резервуара {tank.Name} на {changeValue} до {tank.Volume} MaxVolume: {tank.MaxVolume}");
             }
+            
         }
     }
 }

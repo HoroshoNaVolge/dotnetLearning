@@ -12,13 +12,18 @@ namespace Factories.WebApi.DAL.Repositories
         private readonly UnitRepository? unitsRepository;
         private readonly TankRepository? tanksRepository;
 
+        private readonly object lockObject = new object();
         public IRepository<Factory> Factories
         {
             get
             {
-                if (factoriesRepository != null)
-                    return factoriesRepository;
-                return new FactoryRepository(db);
+                lock (lockObject)
+                {
+                    if (factoriesRepository != null)
+                        return factoriesRepository;
+
+                    return new FactoryRepository(db);
+                }
             }
         }
 
@@ -26,9 +31,12 @@ namespace Factories.WebApi.DAL.Repositories
         {
             get
             {
-                if (unitsRepository != null)
-                    return unitsRepository;
-                return new UnitRepository(db);
+                lock (lockObject)
+                {
+                    if (unitsRepository != null)
+                        return unitsRepository;
+                    return new UnitRepository(db);
+                }
             }
         }
 
@@ -36,9 +44,12 @@ namespace Factories.WebApi.DAL.Repositories
         {
             get
             {
-                if (tanksRepository != null)
-                    return tanksRepository;
-                return new TankRepository(db);
+                lock (lockObject)
+                {
+                    if (tanksRepository != null)
+                        return tanksRepository;
+                    return new TankRepository(db);
+                }
             }
         }
 
@@ -48,7 +59,7 @@ namespace Factories.WebApi.DAL.Repositories
             GC.SuppressFinalize(this);
         }
 
-        public void Save() => db.SaveChanges();
+        public async void Save() => await db.SaveChangesAsync();
 
 
         private bool disposed = false;
