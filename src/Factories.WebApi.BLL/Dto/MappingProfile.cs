@@ -13,6 +13,7 @@ namespace Factories.WebApi.BLL.Dto
             CreateMap<Unit, UnitDto>();
             CreateMap<UnitDto, Unit>();
 
+            // Разобраться как игнорируются навигационные свойства 
             CreateMap<Tank, TankDto>();
             CreateMap<TankDto, Tank>();
         }

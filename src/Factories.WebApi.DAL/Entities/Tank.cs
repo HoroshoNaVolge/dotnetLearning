@@ -8,5 +8,7 @@
         public int? UnitId { get; set; }
         public double? Volume { get; set; }
         public double? MaxVolume { get; set; }
+
+        public Unit? Unit { get; set; }
     }
 }

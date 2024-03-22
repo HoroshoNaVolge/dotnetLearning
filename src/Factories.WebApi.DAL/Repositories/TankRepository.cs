@@ -20,9 +20,13 @@ namespace Factories.WebApi.DAL.Repositories
 
         public IEnumerable<Tank> Find(Func<Tank, bool> predicate) => db.Tanks.Where(predicate).ToList();
 
-        public Tank? Get(int id) => db.Tanks.Find(id);
+        public Tank? Get(int id) => db.Tanks
+                                .Include(t => t.Unit)
+                                .FirstOrDefault(t => t.Id == id);
 
-        public async Task<IEnumerable<Tank>>? GetAllAsync(CancellationToken token) => await db.Tanks.ToListAsync(token == default ? CancellationToken.None : token);
+        public async Task<IEnumerable<Tank>>? GetAllAsync(CancellationToken token) =>
+            await db.Tanks.Include(t => t.Unit)
+            .ToListAsync(token);
 
         public void Update(int id, Tank tank)
         {

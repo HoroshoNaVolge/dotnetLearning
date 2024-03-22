@@ -12,7 +12,7 @@ namespace Factories.WebApi.DAL.Repositories
         private readonly UnitRepository? unitsRepository;
         private readonly TankRepository? tanksRepository;
 
-        private readonly object lockObject = new object();
+        private readonly object lockObject = new();
         public IRepository<Factory> Factories
         {
             get
@@ -61,7 +61,6 @@ namespace Factories.WebApi.DAL.Repositories
 
         public async void Save() => await db.SaveChangesAsync();
 
-
         private bool disposed = false;
 
         public virtual void Dispose(bool disposing)
@@ -69,9 +68,8 @@ namespace Factories.WebApi.DAL.Repositories
             if (!disposed)
             {
                 if (disposing)
-                {
                     db.Dispose();
-                }
+
                 disposed = true;
             }
         }

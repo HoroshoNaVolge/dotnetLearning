@@ -22,7 +22,8 @@ namespace Factories.WebApi.DAL.Repositories
 
         public Factory? Get(int id) => db.Factories.Find(id);
 
-        public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) => await db.Factories.ToListAsync(token);
+        public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) => 
+            await db.Factories.ToListAsync(token);
 
         public void Update(int id, Factory factoryToUpdate)
         {

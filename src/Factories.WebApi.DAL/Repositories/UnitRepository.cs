@@ -20,9 +20,11 @@ namespace Factories.WebApi.DAL.Repositories
 
         public IEnumerable<Unit> Find(Func<Unit, bool> predicate) => db.Units.Where(predicate).ToList();
 
-        public Unit? Get(int id) => db.Units.Find(id);
+        public Unit? Get(int id) => db.Units.Include(u => u.Factory)
+                                .FirstOrDefault(u => u.Id == id);
 
-        public async Task<IEnumerable<Unit>> GetAllAsync(CancellationToken token) => await db.Units.ToListAsync(token == default ? CancellationToken.None : token);
+        public async Task<IEnumerable<Unit>> GetAllAsync(CancellationToken token) =>
+            await db.Units.Include(u => u.Factory).ToListAsync(token);
 
         public void Update(int id, Unit unit)
         {
