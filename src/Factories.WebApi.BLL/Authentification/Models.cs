@@ -1,4 +1,4 @@
-﻿namespace Factories.WebApi.BLL.Authentification
+﻿namespace Factories.WebApi.BLL.Models
 {
     public class UpdatePasswordModel
     {
