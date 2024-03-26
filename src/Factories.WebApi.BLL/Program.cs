@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Factories.WebApi.DAL.Entities;
 using Factories.WebApi.BLL.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
 
 namespace Factories.WebApi.BLL
 {
@@ -21,6 +23,10 @@ namespace Factories.WebApi.BLL
 
             builder.Services.AddScoped<UserService>();
 
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+                             .AddEntityFrameworkStores<UsersDbContext>()
+                             .AddDefaultTokenProviders();
+
             builder.Services.AddScoped(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
@@ -29,7 +35,7 @@ namespace Factories.WebApi.BLL
                 var key = configuration["Jwt:SecretKey"];
                 return new JwtService(issuer, audience, key);
             });
-           
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -76,7 +82,38 @@ namespace Factories.WebApi.BLL
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+
+                // Добавьте определение безопасности (security definition) для JWT Bearer token
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                // Добавьте требование безопасности, чтобы использовать определение безопасности
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+            });
 
             var app = builder.Build();
 

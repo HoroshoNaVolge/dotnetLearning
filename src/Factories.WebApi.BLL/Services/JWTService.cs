@@ -17,7 +17,7 @@ namespace Factories.WebApi.BLL.Services
             var key = Encoding.ASCII.GetBytes(_key);
             var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.UserName),
         };

@@ -51,7 +51,7 @@ namespace Factories.WebApi.BLL.Services
         }
 
 
-        // Метод для генерации случайной соли
+        //  для генерации случайной соли
         private byte[] GenerateSalt()
         {
             byte[] salt = new byte[16]; // Размер соли в байтах
@@ -62,10 +62,10 @@ namespace Factories.WebApi.BLL.Services
             return salt;
         }
 
-        // Метод для хеширования пароля с использованием соли
+        //  для хеширования пароля с использованием соли
         private string HashPassword(string password, byte[] salt)
         {
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000)) // 10000 - количество итераций хеширования
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000))
             {
                 byte[] hash = pbkdf2.GetBytes(20); // Длина хеша 20 байтов (160 бит)
                 byte[] hashWithSalt = new byte[36]; // Длина хеша пароля с солью в байтах

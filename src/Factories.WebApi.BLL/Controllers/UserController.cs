@@ -16,18 +16,20 @@ namespace Factories.WebApi.BLL.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(UserService userService, JwtService jwtService) : ControllerBase
+    public class UserController(UserService userService, JwtService jwtService, UserManager<IdentityUser> userManager) : ControllerBase
     {
         private readonly UserService userService = userService ?? throw new ArgumentNullException(nameof(userService));
         private readonly JwtService jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        private readonly UserManager<IdentityUser> userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
 
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await userService.AuthenticateAsync(model.Login, model.Password);
-
-            if (user != null)
+            // Моя реализация аутентификации, в учебных целях
+             var user = await userService.AuthenticateAsync(model.Login, model.Password);
+           // var user = await userManager.FindByNameAsync(model.Login);
+            if (user != null && await userManager.CheckPasswordAsync(user, model.Password))
             {
                 var token = jwtService.GenerateJwtToken(user);
                 return Ok(new { Token = token });
@@ -40,14 +42,23 @@ namespace Factories.WebApi.BLL.Controllers
         [Authorize]
         public async Task<IActionResult> GetCurrentUserInfo()
         {
-            throw new NotImplementedException();
+            var currentUser = await userManager.GetUserAsync(User);
+
+            if (currentUser == null)
+                return NotFound();
+            return Ok(new
+            {
+                currentUser.Id,
+                currentUser.UserName,
+                currentUser.Email,
+            });
         }
 
         [HttpPost("password/update")]
         [Authorize]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordModel model)
         {
-            throw new NotImplementedException();    
+            throw new NotImplementedException();
         }
 
         [HttpPost("register")]
