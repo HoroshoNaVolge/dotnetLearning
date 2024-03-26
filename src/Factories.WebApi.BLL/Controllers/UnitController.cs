@@ -2,22 +2,22 @@
 using Factories.WebApi.BLL.Dto;
 using Factories.WebApi.DAL.Entities;
 using Factories.WebApi.DAL.Interfaces;
-using Microsoft.AspNetCore.Http;
+using Factories.WebApi.DAL.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Factories.WebApi.BLL.Controllers
 {
     [ApiController]
     [Route("api/unit")]
-    public class UnitController(IUnitOfWork unitOfWork, IMapper mapper) : ControllerBase
+    public class UnitController(IRepository<Unit> unitsRepository, IMapper mapper) : ControllerBase
     {
         private readonly IMapper mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        private readonly IRepository<Unit> unitsRepository = unitsRepository ?? throw new ArgumentNullException(nameof(unitsRepository));
 
         [HttpGet("all")]
         public async Task<ActionResult<IReadOnlyCollection<UnitDto>>> GetUnits(CancellationToken token)
         {
-            var units = await (unitOfWork.Units.GetAllAsync(token) ?? throw new NullReferenceException("UoW почему-то ноль или репо ноль"));
+            var units = await (unitsRepository.GetAllAsync(token) ?? throw new NullReferenceException("UoW почему-то ноль или репо ноль"));
 
             return Ok(mapper.Map<IReadOnlyCollection<UnitDto>>(units));
         }
@@ -25,7 +25,7 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUnit(int id)
         {
-            var unit = unitOfWork.Units?.Get(id);
+            var unit = unitsRepository.Get(id);
 
             if (unit == null)
                 return NotFound();
@@ -36,8 +36,8 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpPost]
         public IActionResult CreateUnit(Unit unit)
         {
-            unitOfWork.Units?.Create(unit);
-            unitOfWork.Save();
+            unitsRepository.Create(unit);
+            unitsRepository.Save();
 
             return Ok();
         }
@@ -45,8 +45,8 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpPut]
         public IActionResult UpdateUnit(int id, Unit unit)
         {
-            unitOfWork.Units?.Update(id, unit);
-            unitOfWork.Save();
+            unitsRepository.Update(id, unit);
+            unitsRepository.Save();
 
             return Ok();
         }
@@ -54,8 +54,8 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteUnit(int id)
         {
-            unitOfWork.Units?.Delete(id);
-            unitOfWork.Save();
+            unitsRepository.Delete(id);
+            unitsRepository.Save();
 
             return Ok();
         }

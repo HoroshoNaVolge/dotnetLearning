@@ -7,6 +7,12 @@ using Factories.WebApi.BLL.Services;
 using Factories.WebApi.BLL.Dto;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System.Text;
+using Factories.WebApi.BLL.Authentification;
+using Factories.WebApi.DAL.Entities;
 
 namespace Factories.WebApi.BLL
 {
@@ -23,14 +29,16 @@ namespace Factories.WebApi.BLL
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<FacilitiesApplicationContext>(options =>
+            builder.Services.AddDbContext<FacilitiesDbContext>(options =>
                            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<UsersDbContext>(options =>
+                                      options.UseNpgsql(builder.Configuration.GetConnectionString("UsersConnection")));
 
-            builder.Services.AddScoped<DbInitializer>();
+            builder.Services.AddScoped<IRepository<Tank>, TankRepository>();
+            builder.Services.AddScoped<IRepository<Unit>, UnitRepository>();
+            builder.Services.AddScoped<IRepository<Factory>, FactoryRepository>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-            builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork>();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Error)

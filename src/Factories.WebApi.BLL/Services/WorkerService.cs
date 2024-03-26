@@ -1,4 +1,5 @@
-﻿using Factories.WebApi.DAL.Interfaces;
+﻿using Factories.WebApi.DAL.Entities;
+using Factories.WebApi.DAL.Interfaces;
 using Factories.WebApi.DAL.Repositories;
 using Serilog;
 
@@ -13,18 +14,18 @@ namespace Factories.WebApi.BLL.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = serviceScopeFactory.CreateScope();
-                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var tankRepository = scope.ServiceProvider.GetRequiredService<IRepository<Tank>>();
 
-                if (unitOfWork.Tanks is not TankRepository tankRepository)
+                if (tankRepository is null)
                     return;
 
                 await UpdateAllVolumesRandomlyAsync(tankRepository, stoppingToken);
-                unitOfWork.Save();
+                tankRepository.Save();
                 await Task.Delay(5000, stoppingToken);
             }
         }
 
-        public async Task UpdateAllVolumesRandomlyAsync(TankRepository tanksRepository, CancellationToken stoppingToken)
+        public async Task UpdateAllVolumesRandomlyAsync(IRepository<Tank> tanksRepository, CancellationToken stoppingToken)
         {
             var tanks = await tanksRepository.GetAllAsync(stoppingToken)!;
 
@@ -47,7 +48,7 @@ namespace Factories.WebApi.BLL.Services
                 //else
                 //    Log.Information($"Изменен объём резервуара {tank.Name} на {changeValue} до {tank.Volume} MaxVolume: {tank.MaxVolume}");
             }
-            
+
         }
     }
 }

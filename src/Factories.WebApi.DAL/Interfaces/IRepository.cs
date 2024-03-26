@@ -8,5 +8,7 @@
         void Create(T item);
         void Update(int id, T facility);
         void Delete(int id);
+
+        void Save();
     }
 }

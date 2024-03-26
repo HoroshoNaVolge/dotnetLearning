@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Factories.WebApi.DAL.Repositories
 {
-    public class FactoryRepository(FacilitiesApplicationContext db) : IRepository<Factory>
+    public class FactoryRepository(FacilitiesDbContext db) : IRepository<Factory>
     {
-        private readonly FacilitiesApplicationContext db = db;
+        private readonly FacilitiesDbContext db = db;
+        private bool disposed = false;
 
         public void Create(Factory item) => db.Factories.Add(item);
 
@@ -22,7 +23,7 @@ namespace Factories.WebApi.DAL.Repositories
 
         public Factory? Get(int id) => db.Factories.Find(id);
 
-        public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) => 
+        public async Task<IEnumerable<Factory>>? GetAllAsync(CancellationToken token) =>
             await db.Factories.ToListAsync(token);
 
         public void Update(int id, Factory factoryToUpdate)
@@ -30,6 +31,25 @@ namespace Factories.WebApi.DAL.Repositories
             var existingFactory = db.Factories.Find(id) ?? throw new InvalidOperationException("Factory not found");
 
             db.Entry(existingFactory).CurrentValues.SetValues(factoryToUpdate);
+        }
+
+        public async void Save() => await db.SaveChangesAsync();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                    db.Dispose();
+
+                disposed = true;
+            }
         }
     }
 }

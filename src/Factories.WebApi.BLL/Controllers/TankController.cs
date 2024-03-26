@@ -2,22 +2,21 @@
 using Factories.WebApi.BLL.Dto;
 using Factories.WebApi.DAL.Entities;
 using Factories.WebApi.DAL.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Factories.WebApi.BLL.Controllers
 {
     [ApiController]
     [Route("api/tank")]
-    public class TankController(IUnitOfWork unitOfWork, IMapper mapper) : ControllerBase
+    public class TankController(IRepository<Tank> tanksRepository, IMapper mapper) : ControllerBase
     {
         private readonly IMapper mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        private readonly IRepository<Tank> tanksRepository = tanksRepository ?? throw new ArgumentNullException(nameof(tanksRepository));
 
         [HttpGet(template: "all")]
         public async Task<ActionResult<IReadOnlyCollection<TankDto>>> GetTanks(CancellationToken token)
         {
-            var tanks = await (unitOfWork.Tanks.GetAllAsync(token) ?? throw new NullReferenceException("UoW почему-то ноль или репо ноль"));
+            var tanks = await (tanksRepository.GetAllAsync(token) ?? throw new NullReferenceException("UoW почему-то ноль или репо ноль"));
 
             var tankDtos = mapper.Map<IReadOnlyCollection<TankDto>>(tanks);
 
@@ -27,7 +26,7 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpGet(template: "{id}")]
         public IActionResult GetTank(int id)
         {
-            var tank = unitOfWork.Tanks.Get(id);
+            var tank = tanksRepository.Get(id);
 
             if (tank == null) { return NotFound(); }
 
@@ -39,9 +38,9 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpPost]
         public IActionResult CreateTank(Tank tank)
         {
-            unitOfWork.Tanks.Create(tank);
+            tanksRepository.Create(tank);
 
-            unitOfWork.Save();
+            tanksRepository.Save();
 
             return Ok();
         }
@@ -49,9 +48,9 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpPut]
         public IActionResult UpdateTank(int id, Tank tank)
         {
-            unitOfWork.Tanks.Update(id, tank);
+            tanksRepository.Update(id, tank);
 
-            unitOfWork.Save();
+            tanksRepository.Save();
 
             return Ok();
         }
@@ -59,9 +58,9 @@ namespace Factories.WebApi.BLL.Controllers
         [HttpDelete]
         public IActionResult DeleteTank(int id)
         {
-            unitOfWork.Tanks.Delete(id);
+            tanksRepository.Delete(id);
 
-            unitOfWork.Save();
+            tanksRepository.Save();
 
             return Ok();
         }

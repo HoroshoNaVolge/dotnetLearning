@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Factories.WebApi.DAL.Repositories
 {
-    public class UnitRepository(FacilitiesApplicationContext db) : IRepository<Unit>
+    public class UnitRepository(FacilitiesDbContext db) : IRepository<Unit>
     {
-        private readonly FacilitiesApplicationContext db = db;
-
+        private readonly FacilitiesDbContext db = db;
+        private bool disposed = false;
         public void Create(Unit item) => db.Units.Add(item);
 
         public void Delete(int id)
@@ -31,6 +31,25 @@ namespace Factories.WebApi.DAL.Repositories
             Unit? existingUnit = db.Units.Find(id) ?? throw new InvalidOperationException("Unit not found");
 
             db.Entry(existingUnit).CurrentValues.SetValues(unit);
+        }
+
+        public async void Save() => await db.SaveChangesAsync();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                    db.Dispose();
+
+                disposed = true;
+            }
         }
     }
 }

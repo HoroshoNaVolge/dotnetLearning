@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Factories.WebApi.DAL.Repositories
 {
-    public class TankRepository(FacilitiesApplicationContext db) : IRepository<Tank>
+    public class TankRepository(FacilitiesDbContext db) : IRepository<Tank>, IDisposable
     {
-        private readonly FacilitiesApplicationContext db = db;
+        private readonly FacilitiesDbContext db = db;
+        private bool disposed = false;
 
         public void Create(Tank item) => db.Tanks.Add(item);
 
@@ -35,6 +36,25 @@ namespace Factories.WebApi.DAL.Repositories
             if (existingTank.Id != tank.Id)
                 return;
             db.Entry(existingTank).CurrentValues.SetValues(tank);
+        }
+
+        public async void Save() => await db.SaveChangesAsync();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                    db.Dispose();
+
+                disposed = true;
+            }
         }
     }
 }
