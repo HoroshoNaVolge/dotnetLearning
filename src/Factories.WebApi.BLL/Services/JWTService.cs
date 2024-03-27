@@ -14,14 +14,13 @@ namespace Factories.WebApi.BLL.Services
         public string GenerateJwtToken(IdentityUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_key);
+            var key = Encoding.UTF8.GetBytes(_key);
             var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.UserName),
-        };
-
+        }; 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),

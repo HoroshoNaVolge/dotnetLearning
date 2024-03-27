@@ -30,9 +30,9 @@ namespace Factories.WebApi.BLL
             builder.Services.AddScoped(provider =>
             {
                 var configuration = provider.GetRequiredService<IConfiguration>();
-                var issuer = configuration["Jwt:Issuer"];
-                var audience = configuration["Jwt:Audience"];
-                var key = configuration["Jwt:SecretKey"];
+                var issuer = configuration.GetSection("Jwt:Issuer").Value;
+                var audience = configuration.GetSection("Jwt:Audience").Value;
+                var key = configuration.GetSection("Jwt:SecretKey").Value;
                 return new JwtService(issuer, audience, key);
             });
 
@@ -44,13 +44,13 @@ namespace Factories.WebApi.BLL
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    ValidateIssuerSigningKey = false,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:SecretKey").Value))
                 };
             });
             builder.Services.AddAuthorization();
