@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Factories.WebApi.BLL.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
-    [Migration("20240326130642_InitialIdentityMigration")]
-    partial class InitialIdentityMigration
+    [Migration("20240327072235_Mig")]
+    partial class Mig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
